@@ -33,15 +33,34 @@
 
 import wttest, wtthread
 import threading
+from wtscenario import make_scenarios
+
 
 class test_bug010(wttest.WiredTigerTestCase):
     name = 'test_bug010'
     uri = 'table:' + name
-    num_tables = 2000 if wttest.islongtest() else 200
+    num_tables = 100
 
     # Disable checkpoint sync, to make checkpoints faster and
     # increase the likelihood of triggering the symptom
     conn_config = 'checkpoint_sync=false'
+
+
+    # Hack: use make_scenarios to run test multiple times. Easier than trying to use & in a bash script
+    # 30^2 == 900 test executions
+    p1 = [
+        ('1',  dict(a='1')),  ('2',  dict(a='2')),  ('3',  dict(a='3')),  ('4',  dict(a='4')),  ('5',  dict(a='5')),  ('6',  dict(a='6')),  ('7',  dict(a='7')),  ('8',  dict(a='8')),  ('9',  dict(a='9')),  ('10',  dict(a='10')), 
+        ('11', dict(a='11')), ('12', dict(a='12')), ('13', dict(a='13')), ('14', dict(a='14')), ('15', dict(a='15')), ('16', dict(a='16')), ('17', dict(a='17')), ('18', dict(a='18')), ('19', dict(a='19')), ('20', dict(a='20')),
+        ('21', dict(a='21')), ('22', dict(a='22')), ('23', dict(a='23')), ('24', dict(a='24')), ('25', dict(a='25')), ('26', dict(a='26')), ('27', dict(a='27')), ('28', dict(a='28')), ('29', dict(a='29')), ('30', dict(a='30')),
+    ]
+    p2 = [
+        ('1',  dict(a='1')),  ('2',  dict(a='2')),  ('3',  dict(a='3')),  ('4',  dict(a='4')),  ('5',  dict(a='5')),  ('6',  dict(a='6')),  ('7',  dict(a='7')),  ('8',  dict(a='8')),  ('9',  dict(a='9')),  ('10',  dict(a='10')), 
+        ('11', dict(a='11')), ('12', dict(a='12')), ('13', dict(a='13')), ('14', dict(a='14')), ('15', dict(a='15')), ('16', dict(a='16')), ('17', dict(a='17')), ('18', dict(a='18')), ('19', dict(a='19')), ('20', dict(a='20')),
+        ('21', dict(a='21')), ('22', dict(a='22')), ('23', dict(a='23')), ('24', dict(a='24')), ('25', dict(a='25')), ('26', dict(a='26')), ('27', dict(a='27')), ('28', dict(a='28')), ('29', dict(a='29')), ('30', dict(a='30')),
+    ]
+    
+    # Build all scenarios
+    scenarios = make_scenarios(p1, p2)
 
     def test_checkpoint_dirty(self):
         # Create a lot of tables
@@ -85,9 +104,11 @@ class test_bug010(wttest.WiredTigerTestCase):
                 c = self.session.open_cursor(
                     self.uri + str(i), None, 'checkpoint=WiredTigerCheckpoint')
                 c.next()
-                self.assertEquals(c.get_value(), expected_val,
-                    msg='Mismatch on iteration ' + str(its) +\
-                                        ' for table ' + str(i))
+
+                if c.get_value() != expected_val:
+                    self.prout(f"Mismatch on iteration {str(its)} for table {str(i)}")
+                    self.prout(f"expected: {expected_val} != found: {c.get_value()}")
+                    self.session.breakpoint()
                 c.close()
 
 if __name__ == '__main__':
