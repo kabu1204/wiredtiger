@@ -342,6 +342,14 @@ define_c_test(
 )
 
 define_c_test(
+    TARGET test_wt9642_checkpoint_dirty_assertion
+    SOURCES wt9642_checkpoint_dirty_assertion/main.c
+    DIR_NAME wt9642_checkpoint_dirty_assertion
+    ARGUMENTS -h $<SHELL_PATH:$<TARGET_FILE_DIR:test_wt9642_checkpoint_dirty_assertion>/WT_HOME>
+    DEPENDS "WT_POSIX"
+)
+
+define_c_test(
     TARGET test_wt8659_reconstruct_database_from_logs
     SOURCES wt8659_reconstruct_database_from_logs/main.c
     DIR_NAME wt8659_reconstruct_database_from_logs
