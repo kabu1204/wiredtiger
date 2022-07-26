@@ -1702,6 +1702,17 @@ tasks:
         vars:
           test_name: wt8057_compact_stress
 
+  - name: csuite-wt9642_checkpoint_dirty_assertion
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+      - command: shell.exec
+        params:
+          working_dir: "wiredtiger/cmake_build/test/csuite/wt9642_checkpoint_dirty_assertion"
+          script: |
+            while ./test_wt9642_checkpoint_dirty_assertion; do :; done
+
+
   - name: csuite-wt8246-compact-rts-data-correctness-test
     tags: ["pull_request"]
     depends_on:
@@ -3985,6 +3996,7 @@ buildvariants:
     - name: data-validation-stress-test-checkpoint-no-timestamp
     - name: unittest-test
     - name: tiered-storage-extensions-test
+    - name: csuite-wt9642_checkpoint_dirty_assertion
 
 - name: ubuntu2004-asan
   display_name: "! Ubuntu 20.04 ASAN"
