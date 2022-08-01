@@ -104,9 +104,11 @@ class test_bug010(wttest.WiredTigerTestCase):
                 c = self.session.open_cursor(
                     self.uri + str(i), None, 'checkpoint=WiredTigerCheckpoint')
                 c.next()
-                self.assertEquals(c.get_value(), expected_val,
-                    msg='Mismatch on iteration ' + str(its) +\
-                                        ' for table ' + str(i))
+
+                if c.get_value() != expected_val:
+                    self.prout(f"Mismatch on iteration {str(its)} for table {str(i)}")
+                    self.prout(f"expected: {expected_val} != found: {c.get_value()}")
+                    self.session.breakpoint()
                 c.close()
 
 if __name__ == '__main__':

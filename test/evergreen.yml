@@ -2340,7 +2340,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0  -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
   - name: spinlock-pthread-adaptive-bug010-2
@@ -2348,7 +2348,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0  -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
   - name: spinlock-pthread-adaptive-bug010-3
@@ -2356,7 +2356,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0  -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
   - name: spinlock-pthread-adaptive-bug010-4
@@ -2364,7 +2364,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0  -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
   - name: spinlock-pthread-adaptive-bug010-5
@@ -2372,7 +2372,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0  -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
   - name: spinlock-pthread-adaptive-bug010-6
@@ -2380,7 +2380,7 @@ tasks:
       - func: "get project"
       - func: "compile wiredtiger"
         vars:
-          posix_configure_flags: -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0 -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
 
 
