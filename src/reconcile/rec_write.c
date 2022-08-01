@@ -95,6 +95,8 @@ __wt_reconcile(WT_SESSION_IMPL *session, WT_REF *ref, WT_SALVAGE_COOKIE *salvage
      * that information.
      */
     ret = __reconcile(session, ref, salvage, flags, &page_locked);
+    // WT_ASSERT_ALWAYS(session, ret != 0, "__wt_reconcile: Page reconciliation failed");
+
 
     /* If writing a page in service of compaction, we're done, clear the flag. */
     F_CLR_ATOMIC_16(ref->page, WT_PAGE_COMPACTION_WRITE);
@@ -262,6 +264,11 @@ __reconcile(WT_SESSION_IMPL *session, WT_REF *ref, WT_SALVAGE_COOKIE *salvage, u
         ret = __wt_illegal_value(session, page->type);
         break;
     }
+
+    // WT_ASSERT_ALWAYS(session, ret != 0, "__reconcile: Page reconciliation failed");
+    // if(ret != 0) {
+    //     __wt_errx(session, "DBG - reconciliation failed for btree id: %u dhandle name: %s\n",  btree->id, btree->dhandle->name);
+    // }
 
     /*
      * If we failed, don't bail out yet; we still need to update stats and tidy up.

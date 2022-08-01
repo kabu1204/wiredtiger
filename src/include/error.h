@@ -129,6 +129,15 @@
  * the function with an error. WT_ASSERT is deprecated, and should be used only
  * where required for performance.
  */
+
+#define WT_ASSERT_ALWAYS(session, exp, failure_reason)                             \
+    do {                                                                           \
+        if (!(exp)) {                                                              \
+            __wt_errx(session, "Assertion '%s' failed: %s", #exp, failure_reason); \
+            __wt_abort(session);                                                   \
+        }                                                                          \
+    } while (0)
+
 #ifdef HAVE_DIAGNOSTIC
 #define WT_ASSERT(session, exp)             \
     do {                                    \
