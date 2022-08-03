@@ -57,6 +57,7 @@ const std::string MAX = "max";
 const std::string MIN = "min";
 const std::string OLDEST_LAG = "oldest_lag";
 const std::string OP_RATE = "op_rate";
+const std::string k_op_rate = "op_rate";
 const std::string OPS_PER_TRANSACTION = "ops_per_transaction";
 const std::string POPULATE_CONFIG = "populate_config";
 const std::string POSTRUN_STATISTICS = "postrun";

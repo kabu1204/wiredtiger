@@ -60,6 +60,7 @@ extern const std::string MAX;
 extern const std::string MIN;
 extern const std::string OLDEST_LAG;
 extern const std::string OP_RATE;
+extern const std::string k_op_rate;
 extern const std::string OPS_PER_TRANSACTION;
 extern const std::string POPULATE_CONFIG;
 extern const std::string POSTRUN_STATISTICS;

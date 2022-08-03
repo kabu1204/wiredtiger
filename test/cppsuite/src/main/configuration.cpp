@@ -43,13 +43,13 @@ namespace test_harness {
 static bool
 config_item_to_bool(const WT_CONFIG_ITEM item)
 {
-    return (item.val != 0);
+    return item.val != 0;
 }
 
 static int64_t
 config_item_to_int(const WT_CONFIG_ITEM item)
 {
-    return (item.val);
+    return item.val;
 }
 
 static std::string
@@ -61,25 +61,25 @@ config_item_to_string(const WT_CONFIG_ITEM item)
 static std::vector<std::string>
 config_item_to_list(const WT_CONFIG_ITEM item)
 {
-    auto str = config_item_to_string(item);
+    std::string str = config_item_to_string(item);
 
     /* Get rid of the brackets. */
     testutil_assert(!str.empty() && str.front() == '[' && str.back() == ']');
     str.pop_back();
     str.erase(0, 1);
 
-    return (split_string(str, ','));
+    return split_string(str, ',');
 }
 
 configuration::configuration(const std::string &test_config_name, const std::string &config)
 {
-    const auto *config_entry = __wt_test_config_match(test_config_name.c_str());
+    const WT_CONFIG_ENTRY *config_entry = __wt_test_config_match(test_config_name.c_str());
     if (config_entry == nullptr)
         testutil_die(EINVAL, "failed to match test config name");
     std::string default_config = std::string(config_entry->base);
     /* Merge in the default configuration. */
     _config = merge_default_config(default_config, config);
-    logger::log_msg(LOG_INFO, "Full config: " + _config);
+    logger::log_msg(k_log_info, "Full config: " + _config);
 
     int ret =
       wiredtiger_test_config_validate(nullptr, nullptr, test_config_name.c_str(), _config.c_str());
@@ -110,57 +110,57 @@ configuration::~configuration()
 std::string
 configuration::get_string(const std::string &key)
 {
-    return get<std::string>(key, false, types::STRING, "", config_item_to_string);
+    return get<std::string>(key, false, types::t_string, "", config_item_to_string);
 }
 
 std::string
 configuration::get_optional_string(const std::string &key, const std::string &def)
 {
-    return get<std::string>(key, true, types::STRING, def, config_item_to_string);
+    return get<std::string>(key, true, types::t_string, def, config_item_to_string);
 }
 
 bool
 configuration::get_bool(const std::string &key)
 {
-    return get<bool>(key, false, types::BOOL, false, config_item_to_bool);
+    return get<bool>(key, false, types::t_bool, false, config_item_to_bool);
 }
 
 bool
 configuration::get_optional_bool(const std::string &key, const bool def)
 {
-    return get<bool>(key, true, types::BOOL, def, config_item_to_bool);
+    return get<bool>(key, true, types::t_bool, def, config_item_to_bool);
 }
 
 int64_t
 configuration::get_int(const std::string &key)
 {
-    return get<int64_t>(key, false, types::INT, 0, config_item_to_int);
+    return get<int64_t>(key, false, types::t_int, 0, config_item_to_int);
 }
 
 int64_t
 configuration::get_optional_int(const std::string &key, const int64_t def)
 {
-    return get<int64_t>(key, true, types::INT, def, config_item_to_int);
+    return get<int64_t>(key, true, types::t_int, def, config_item_to_int);
 }
 
 configuration *
 configuration::get_subconfig(const std::string &key)
 {
-    return get<configuration *>(key, false, types::STRUCT, nullptr,
+    return get<configuration *>(key, false, types::t_struct, nullptr,
       [](WT_CONFIG_ITEM item) { return new configuration(item); });
 }
 
 configuration *
 configuration::get_optional_subconfig(const std::string &key)
 {
-    return get<configuration *>(key, true, types::STRUCT, nullptr,
+    return get<configuration *>(key, true, types::t_struct, nullptr,
       [](WT_CONFIG_ITEM item) { return new configuration(item); });
 }
 
 std::vector<std::string>
 configuration::get_list(const std::string &key)
 {
-    return get<std::vector<std::string>>(key, false, types::LIST, {}, config_item_to_list);
+    return get<std::vector<std::string>>(key, false, types::t_list, {}, config_item_to_list);
 }
 
 template <typename T>
@@ -173,22 +173,22 @@ configuration::get(
 
     ret = _config_parser->get(_config_parser, key.c_str(), &value);
     if (ret == WT_NOTFOUND && optional)
-        return (def);
+        return def;
     else if (ret != 0)
         testutil_die(ret, ("Error while finding config with key \"" + key + "\"").c_str());
 
     const char *error_msg = "Configuration value doesn't match requested type";
-    if (type == types::STRING &&
+    if (type == types::t_string &&
       (value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_STRING &&
         value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_ID))
         testutil_die(-1, error_msg);
-    else if (type == types::BOOL && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_BOOL)
+    else if (type == types::t_bool && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_BOOL)
         testutil_die(-1, error_msg);
-    else if (type == types::INT && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_NUM)
+    else if (type == types::t_int && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_NUM)
         testutil_die(-1, error_msg);
-    else if (type == types::STRUCT && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_STRUCT)
+    else if (type == types::t_struct && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_STRUCT)
         testutil_die(-1, error_msg);
-    else if (type == types::LIST && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_STRUCT)
+    else if (type == types::t_list && value.type != WT_CONFIG_ITEM::WT_CONFIG_ITEM_STRUCT)
         testutil_die(-1, error_msg);
 
     return func(value);
@@ -198,7 +198,7 @@ uint64_t
 configuration::get_throttle_ms()
 {
     uint64_t multiplier = 0;
-    const std::string throttle_config(get_optional_string(OP_RATE, "1s"));
+    const std::string throttle_config(get_optional_string(k_op_rate, "1s"));
     /*
      * Find the ms, s, or m in the string. Searching for "ms" first as the following two searches
      * would match as well.
@@ -255,7 +255,7 @@ configuration::merge_default_config(
         merged_config += "," + user_it->first + "=" + user_it->second;
         ++user_it;
     }
-    return (merged_config);
+    return merged_config;
 }
 
 std::vector<std::pair<std::string, std::string>>
@@ -328,13 +328,13 @@ configuration::split_config(const std::string &config)
 
     /* We have to sort the config here otherwise we will match incorrectly while merging. */
     std::sort(split_config.begin(), split_config.end(), comparator);
-    return (split_config);
+    return split_config;
 }
 
 bool
 configuration::comparator(
   std::pair<std::string, std::string> a, std::pair<std::string, std::string> b)
 {
-    return (a.first < b.first);
+    return a.first < b.first;
 }
-} // namespace test_harness
+} /* namespace test_harness */

@@ -46,6 +46,12 @@ namespace test_harness {
 #define LOG_ERROR 0
 #define LOG_WARN 1
 #define LOG_INFO 2
+
+/* temp redefinition for example style guide. */
+#define k_log_error 0
+#define k_log_warn 1
+#define k_log_info 2
+
 /*
  * The trace log level can incur a performance overhead since the current logging implementation
  * requires per-line locking.
