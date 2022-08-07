@@ -799,7 +799,15 @@ __wt_page_modify_set(WT_SESSION_IMPL *session, WT_PAGE *page)
      */
     __wt_tree_modify_set(session);
 
+    // TRIGGER ERROR
+    // sleep for 1 ms to simulate a context switch pausing this thread long enough 
+    // for a checkpoint to come in and mark the tree clean.
+    usleep(1000);
     __wt_page_only_modify_set(session, page);
+
+    // FIX ERROR
+    // Set the tree dirty again in case of the above scenario.
+    // __wt_tree_modify_set(session);
 }
 
 /*
