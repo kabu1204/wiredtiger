@@ -93,6 +93,7 @@ class test_bug010(wttest.WiredTigerTestCase):
                     c = self.session.open_cursor(self.uri + str(i), None)
                     c['a'] = expected_val
                     c.close()
+
             finally:
                 done.set()
                 ckpt.join()

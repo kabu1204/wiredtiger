@@ -2071,7 +2071,7 @@ err:
 int
 __wt_session_breakpoint(WT_SESSION *wt_session)
 {
-    __wt_abort((WT_SESSION_IMPL*)wt_session);
+    __wt_abort((WT_SESSION_IMPL *)wt_session);
     return (0);
 }
 

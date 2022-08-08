@@ -2382,7 +2382,30 @@ tasks:
         vars:
           posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0 -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
       - func: "unit test bug010"
+  
+  - name: spinlock-pthread-adaptive-bug010-7
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0 -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+      - func: "unit test bug010"
 
+  - name: spinlock-pthread-adaptive-bug010-8
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0 -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+      - func: "unit test bug010"
+  
+  - name: spinlock-pthread-adaptive-bug010-9
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+          posix_configure_flags: -DCC_OPTIMIZE_LEVEL=-O0 -DCMAKE_C_FLAGS="-ggdb" -DENABLE_PYTHON=1 -DSPINLOCK_TYPE=pthread_adaptive -DENABLE_STRICT=1
+      - func: "unit test bug010"
 
   - name: wtperf-test
     depends_on:
@@ -3965,6 +3988,9 @@ buildvariants:
     - name: spinlock-pthread-adaptive-bug010-4
     - name: spinlock-pthread-adaptive-bug010-5
     - name: spinlock-pthread-adaptive-bug010-6
+    - name: spinlock-pthread-adaptive-bug010-7
+    - name: spinlock-pthread-adaptive-bug010-8
+    - name: spinlock-pthread-adaptive-bug010-9
     - name: spinlock-pthread-adaptive-test
     - name: compile-wtperf
     - name: ftruncate-test

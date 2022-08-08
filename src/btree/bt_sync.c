@@ -469,6 +469,15 @@ __wt_sync_file(WT_SESSION_IMPL *session, WT_CACHE_OP syncop)
                 leaf_bytes += page->memory_footprint;
                 ++leaf_pages;
                 WT_ERR(__wt_reconcile(session, walk, NULL, WT_REC_CHECKPOINT));
+                /*
+                 * Check to ensure pages left dirty behind checkpoint also leave the tree dirty.
+                 * It's a bit tricky - since something could dirty the page (and tree) after the
+                 * first check of btree modified, re-check via an assertion.
+                 */
+                if (!btree->modified && __wt_page_is_modified(page)) {
+                    __wt_errx(session, "PING: Dirty tree check inside ckpt loop");
+                    WT_ASSERT_ALWAYS(session, btree->modified, "PING: Assertion inside bt_sync.");
+                }
             }
         }
         break;

@@ -798,8 +798,9 @@ __wt_page_modify_set(WT_SESSION_IMPL *session, WT_PAGE *page)
      * needing to be written.
      */
     __wt_tree_modify_set(session);
-
+    usleep(1000);
     __wt_page_only_modify_set(session, page);
+    __wt_tree_modify_set(session);
 }
 
 /*
