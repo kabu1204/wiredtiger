@@ -738,7 +738,7 @@ __rec_cleanup(WT_SESSION_IMPL *session, WT_RECONCILE *r)
         __wt_free(session, multi->disk_image);
         __wt_free(session, multi->supd);
         __wt_free(session, multi->addr.addr);
-        if(rand() % WT_9512_ODDS == 0) usleep(WT_9512_SLEEP_FOR);
+        __wt_yield();
     }
     __wt_free(session, r->multi);
 
@@ -2333,8 +2333,9 @@ __rec_split_discard(WT_SESSION_IMPL *session, WT_PAGE *page)
          */
         if (multi->addr.addr != NULL && !multi->addr.reuse) {
             WT_RET(__wt_btree_block_free(session, multi->addr.addr, multi->addr.size));
+            __wt_yield();
             __wt_free(session, multi->addr.addr);
-            if(rand() % WT_9512_ODDS == 0) usleep(WT_9512_SLEEP_FOR);
+            __wt_yield();
         }
     }
     __wt_free(session, mod->mod_multi);
@@ -2458,11 +2459,12 @@ __rec_write_wrapup(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_PAGE *page)
                              */
         if (!__wt_ref_is_root(ref))
             WT_RET(__wt_btree_block_free(session, mod->mod_replace.addr, mod->mod_replace.size));
-
+        __wt_yield();
         /* Discard the replacement page's address and disk image. */
         __wt_free(session, mod->mod_replace.addr);
-        if(rand() % WT_9512_ODDS == 0) usleep(WT_9512_SLEEP_FOR);
+        __wt_yield();
         mod->mod_replace.size = 0;
+        __wt_yield();
         __wt_free(session, mod->mod_disk_image);
         break;
     default:

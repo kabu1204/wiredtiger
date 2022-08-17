@@ -108,7 +108,7 @@ __compact_page_replace_addr(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY 
 
     if (__wt_off_page(ref->home, addr)) {
         __wt_free(session, addr->addr);
-        if(rand() % WT_9512_ODDS == 0) usleep(WT_9512_SLEEP_FOR);
+        __wt_yield();
     } else {
         __wt_cell_unpack_addr(session, ref->home->dsk, (WT_CELL *)addr, &unpack);
 
