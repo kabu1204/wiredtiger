@@ -1498,23 +1498,21 @@ __wt_ref_addr_copy(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY *copy)
     __wt_yield();
     __wt_yield();
 
+    // if(addr->addr == NULL && addr->size != 0){
+    //     __wt_yield();
+    //     WT_ASSERT_ALWAYS(session, addr->size == 0 || !__wt_off_page(page, addr), "NULL addr->addr, non-zero copy size");
+    // }
 
-    if(addr->addr == NULL && addr->size != 0){
-        __wt_yield();
-        WT_ASSERT_ALWAYS(session, addr->size == 0 || !__wt_off_page(page, addr), "NULL addr->addr, non-zero copy size");
-    }
+    // if(addr->addr == NULL && addr->size != 0){
+    //             WT_UNUSED(addr);
+    //     }
 
-    __wt_yield();
-    __wt_yield();
-    __wt_yield();
-    __wt_yield();
+    WT_ASSERT_ALWAYS(session, (void *)((uintptr_t)addr & ~(uintptr_t)(7)) == addr, "PING: addr not aligned.");
+
     /* If off-page, the pointer references a WT_ADDR structure. */
     if (__wt_off_page(page, addr)) {
         WT_TIME_AGGREGATE_COPY(&copy->ta, &addr->ta);
-        __wt_yield();
         copy->type = addr->type;
-        __wt_yield();
-        __wt_yield();
         memcpy(copy->addr, addr->addr, copy->size = addr->size);
         return (true);
     }
