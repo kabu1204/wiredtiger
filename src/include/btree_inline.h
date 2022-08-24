@@ -10,6 +10,7 @@
  * __wt_ref_is_root --
  *     Return if the page reference is for the root page.
  */
+#include "wt_internal.h"
 static inline bool
 __wt_ref_is_root(WT_REF *ref)
 {
@@ -1498,16 +1499,13 @@ __wt_ref_addr_copy(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY *copy)
     __wt_yield();
     __wt_yield();
 
-    // if(addr->addr == NULL && addr->size != 0){
-    //     __wt_yield();
-    //     WT_ASSERT_ALWAYS(session, addr->size == 0 || !__wt_off_page(page, addr), "NULL addr->addr, non-zero copy size");
-    // }
+    if (__wt_off_page(page, addr))
+        WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED(addr, 8), "__wt_ref_addr_copy: addr misaligned!");
 
-    // if(addr->addr == NULL && addr->size != 0){
-    //             WT_UNUSED(addr);
-    //     }
-
-    WT_ASSERT_ALWAYS(session, (void *)((uintptr_t)addr & ~(uintptr_t)(7)) == addr, "PING: addr not aligned.");
+    __wt_yield();
+    __wt_yield();
+    __wt_yield();
+    __wt_yield();
 
     /* If off-page, the pointer references a WT_ADDR structure. */
     if (__wt_off_page(page, addr)) {
@@ -2199,6 +2197,8 @@ __wt_btcur_skip_page(
      * if the page has been modified since it was reconciled, since neither the delete information
      * nor the timestamp information is necessarily up to date.
      */
+    if (__wt_off_page(ref->home, (WT_ADDR *)ref->addr))
+        WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED((WT_ADDR *)ref->addr, 8), "__wt_btcur_skip_page: addr misaligned!");
     if ((previous_state == WT_REF_DISK ||
           (previous_state == WT_REF_MEM && !__wt_page_is_modified(ref->page))) &&
       __wt_ref_addr_copy(session, ref, &addr)) {

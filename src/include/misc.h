@@ -81,6 +81,8 @@
 
 #define WT_ALIGN_NEAREST(n, v) ((((uintmax_t)(n)) + ((v) / 2)) & ~(((uintmax_t)(v)) - 1))
 
+#define WT_IS_ALIGNED(ptr, sz) ((void *)((uintptr_t)(ptr) & ~(uintptr_t)((sz) - 1)) == ptr)
+
 /* Min, max. */
 #define WT_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define WT_MAX(a, b) ((a) < (b) ? (b) : (a))

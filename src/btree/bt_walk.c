@@ -451,6 +451,8 @@ descend:
             }
 
             /* See if our caller wants to skip this page. */
+            if (__wt_off_page(ref->home, (WT_ADDR *)ref->addr))
+                WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED(ref->addr, 8), "__tree_walk_internal: ref->addr misaligned!");
             if (skip_func != NULL) {
                 WT_ERR(skip_func(session, ref, func_cookie, LF_ISSET(WT_READ_VISIBLE_ALL), &skip));
                 if (skip)

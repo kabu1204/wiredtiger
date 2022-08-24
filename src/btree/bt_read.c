@@ -129,6 +129,8 @@ __page_read(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags)
      * Get the address: if there is no address, the page was deleted and a subsequent search or
      * insert is forcing re-creation of the name space.
      */
+    if (__wt_off_page(ref->home, (WT_ADDR *)ref->addr))
+        WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED((WT_ADDR *)ref->addr, 8), "__page_read: ref->addr misaligned!");
     if (!__wt_ref_addr_copy(session, ref, &addr)) {
         WT_ASSERT(session, previous_state == WT_REF_DELETED);
 
@@ -261,6 +263,8 @@ read:
              */
             if (!LF_ISSET(WT_READ_IGNORE_CACHE_SIZE))
                 WT_RET(__wt_cache_eviction_check(session, true, txn->mod_count == 0, NULL));
+            if (__wt_off_page(ref->home, (WT_ADDR *)ref->addr))
+                WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED((WT_ADDR *)ref->addr, 8), "__wt_page_in_func: ref->addr misaligned!");
             WT_RET(__page_read(session, ref, flags));
 
             /* We just read a page, don't evict it before we have a chance to use it. */
