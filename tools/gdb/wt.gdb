@@ -7,5 +7,6 @@ directory ../tools/gdb_commands
 
 # Source the known gdb helpers
 source dump_row_int.gdb
+source hazard_pointers.py
 source wt_debug_script_update.py
 
