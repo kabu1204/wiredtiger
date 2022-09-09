@@ -10,7 +10,6 @@
  * __wt_ref_is_root --
  *     Return if the page reference is for the root page.
  */
-#include "wt_internal.h"
 static inline bool
 __wt_ref_is_root(WT_REF *ref)
 {

@@ -392,8 +392,7 @@ __evict_page_dirty_update(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t evict_
         mod->mod_replace.addr = NULL;
         mod->mod_replace.size = 0;
         /* TODO fix this to be WT_PUBLISH(ref->addr, addr); */
-        WT_PUBLISH(ref->addr, addr);
-        __wt_sleep(0, 10);
+        ref->addr = addr;
 
         /*
          * Eviction wants to keep this page if we have a disk image, re-instantiate the page in
