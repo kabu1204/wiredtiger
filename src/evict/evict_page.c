@@ -388,9 +388,12 @@ __evict_page_dirty_update(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t evict_
         WT_ASSERT(session, mod->mod_replace.addr != NULL);
         WT_RET(__wt_calloc_one(session, &addr));
         *addr = mod->mod_replace;
+
         mod->mod_replace.addr = NULL;
         mod->mod_replace.size = 0;
-        ref->addr = addr;
+        /* TODO fix this to be WT_PUBLISH(ref->addr, addr); */
+        WT_PUBLISH(ref->addr, addr);
+        __wt_sleep(0, 10);
 
         /*
          * Eviction wants to keep this page if we have a disk image, re-instantiate the page in

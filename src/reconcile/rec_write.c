@@ -2763,9 +2763,9 @@ __wt_rec_hs_clear_on_tombstone(
     WT_RET(__wt_hs_delete_key_from_ts(
       session, r->hs_cursor, btree->id, key, reinsert, F_ISSET(r, WT_REC_CHECKPOINT_RUNNING)));
 
-    /* Fail 0.01% of the time. */
+    /* Fail 10% of the time. */
     if (F_ISSET(r, WT_REC_EVICT) &&
-      __wt_failpoint(session, WT_TIMING_STRESS_FAILPOINT_HISTORY_STORE_DELETE_KEY_FROM_TS, 1))
+      __wt_failpoint(session, WT_TIMING_STRESS_FAILPOINT_HISTORY_STORE_DELETE_KEY_FROM_TS, 1000))
         return (EBUSY);
 
     WT_STAT_CONN_INCR(session, cache_hs_key_truncate_onpage_removal);
