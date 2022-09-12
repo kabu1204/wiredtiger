@@ -1790,7 +1790,7 @@ extern void __wt_fill_hex(
   const uint8_t *src, size_t src_max, uint8_t *dest, size_t dest_max, size_t *lenp);
 extern void __wt_free_int(WT_SESSION_IMPL *session, const void *p_arg)
   WT_GCC_FUNC_DECL_ATTRIBUTE((visibility("default")));
-extern void __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages);
+extern void __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages, uint8_t *addr_fill);
 extern void __wt_free_ref_index(
   WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pindex, bool free_pages);
 extern void __wt_free_update_list(WT_SESSION_IMPL *session, WT_UPDATE **updp);
@@ -1834,7 +1834,7 @@ extern void __wt_optrack_record_funcid(
 extern void __wt_os_stdio(WT_SESSION_IMPL *session);
 extern void __wt_ovfl_discard_free(WT_SESSION_IMPL *session, WT_PAGE *page);
 extern void __wt_ovfl_reuse_free(WT_SESSION_IMPL *session, WT_PAGE *page);
-extern void __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep);
+extern void __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep, uint8_t *addr_fill);
 extern void __wt_print_huffman_code(void *huffman_arg, uint16_t symbol);
 extern void __wt_random_init(WT_RAND_STATE volatile *rnd_state)
   WT_GCC_FUNC_DECL_ATTRIBUTE((visibility("default")));
@@ -1848,7 +1848,7 @@ extern void __wt_rec_col_fix_write_auxheader(WT_SESSION_IMPL *session, uint32_t 
   uint32_t aux_start_offset, uint32_t auxentries, uint8_t *image, size_t size);
 extern void __wt_rec_dictionary_free(WT_SESSION_IMPL *session, WT_RECONCILE *r);
 extern void __wt_rec_dictionary_reset(WT_RECONCILE *r);
-extern void __wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref);
+extern void __wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref, uint8_t *addr_fill);
 extern void __wt_ref_out(WT_SESSION_IMPL *session, WT_REF *ref);
 extern void __wt_root_ref_init(
   WT_SESSION_IMPL *session, WT_REF *root_ref, WT_PAGE *root, bool is_recno);
@@ -2146,7 +2146,7 @@ static inline int __wt_rec_cell_build_val(WT_SESSION_IMPL *session, WT_RECONCILE
 static inline int __wt_rec_dict_replace(
   WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_TIME_WINDOW *tw, uint64_t rle, WT_REC_KV *val)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-static inline int __wt_ref_block_free(WT_SESSION_IMPL *session, WT_REF *ref)
+static inline int __wt_ref_block_free(WT_SESSION_IMPL *session, WT_REF *ref, uint8_t *addr_fill)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 static inline int __wt_row_leaf_key(WT_SESSION_IMPL *session, WT_PAGE *page, WT_ROW *rip,
   WT_ITEM *key, bool instantiate) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));

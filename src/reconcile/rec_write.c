@@ -497,7 +497,7 @@ __rec_root_write(WT_SESSION_IMPL *session, WT_PAGE *page, uint32_t flags)
     return (__wt_reconcile(session, &fake_ref, NULL, flags));
 
 err:
-    __wt_page_out(session, &next);
+    __wt_page_out(session, &next, (uint8_t *)0x00babeee);
     return (ret);
 }
 
@@ -2347,7 +2347,7 @@ __rec_split_discard(WT_SESSION_IMPL *session, WT_PAGE *page)
     if (WT_PAGE_IS_INTERNAL(page) && mod->mod_root_split != NULL) {
         WT_RET(__rec_split_discard(session, mod->mod_root_split));
         WT_RET(__wt_ovfl_track_wrapup(session, mod->mod_root_split));
-        __wt_page_out(session, &mod->mod_root_split);
+        __wt_page_out(session, &mod->mod_root_split, (uint8_t *)0xcacacaca);
     }
 
     return (0);
@@ -2438,7 +2438,7 @@ __rec_write_wrapup(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_PAGE *page)
             break;
 
         for (i = 0; i < 1000; i++)
-            WT_RET(__wt_ref_block_free(session, ref));
+            WT_RET(__wt_ref_block_free(session, ref, (uint8_t*)0x24412441));
         break;
     case WT_PM_REC_EMPTY: /* Page deleted */
         break;

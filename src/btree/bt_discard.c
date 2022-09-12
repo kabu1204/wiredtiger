@@ -11,7 +11,7 @@
 static void __free_page_modify(WT_SESSION_IMPL *, WT_PAGE *);
 static void __free_page_col_fix(WT_SESSION_IMPL *, WT_PAGE *);
 static void __free_page_col_var(WT_SESSION_IMPL *, WT_PAGE *);
-static void __free_page_int(WT_SESSION_IMPL *, WT_PAGE *);
+static void __free_page_int(WT_SESSION_IMPL *, WT_PAGE *, uint8_t *);
 static void __free_page_row_leaf(WT_SESSION_IMPL *, WT_PAGE *);
 static void __free_skip_array(WT_SESSION_IMPL *, WT_INSERT_HEAD **, uint32_t, bool);
 static void __free_skip_list(WT_SESSION_IMPL *, WT_INSERT *, bool);
@@ -45,7 +45,7 @@ __wt_ref_out(WT_SESSION_IMPL *session, WT_REF *ref)
         F_ISSET(session->dhandle, WT_DHANDLE_DEAD | WT_DHANDLE_EXCLUSIVE) ||
         !__wt_gen_active(session, WT_GEN_SPLIT, ref->page->pg_intl_split_gen));
 
-    __wt_page_out(session, &ref->page);
+    __wt_page_out(session, &ref->page, (uint8_t *)0xc2c2c2c2);
 }
 
 /*
@@ -53,7 +53,7 @@ __wt_ref_out(WT_SESSION_IMPL *session, WT_REF *ref)
  *     Discard an in-memory page, freeing all memory associated with it.
  */
 void
-__wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
+__wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep, uint8_t *addr_fill)
 {
     WT_PAGE *page;
     WT_PAGE_HEADER *dsk;
@@ -86,7 +86,7 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     case WT_PAGE_ROW_INT:
         mod = page->modify;
         if (mod != NULL && mod->mod_root_split != NULL)
-            __wt_page_out(session, &mod->mod_root_split);
+            __wt_page_out(session, &mod->mod_root_split, (uint8_t *)0x037b0fa2);
         break;
     }
 
@@ -119,7 +119,7 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
         break;
     case WT_PAGE_COL_INT:
     case WT_PAGE_ROW_INT:
-        __free_page_int(session, page);
+        __free_page_int(session, page, addr_fill);
         break;
     case WT_PAGE_COL_VAR:
         __free_page_col_var(session, page);
@@ -226,7 +226,7 @@ __free_page_modify(WT_SESSION_IMPL *session, WT_PAGE *page)
  *     Free the address in a reference, if necessary.
  */
 void
-__wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref)
+__wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref, uint8_t *addr_fill)
 {
     void *ref_addr;
 
@@ -243,6 +243,7 @@ __wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref)
 
     if (ref->home == NULL || __wt_off_page(ref->home, ref_addr)) {
         __wt_free(session, ((WT_ADDR *)ref_addr)->addr);
+        ((WT_ADDR *)ref_addr)->addr = addr_fill;
         __wt_free(session, ref_addr);
         __wt_sleep(0, 10);
     }
@@ -253,7 +254,7 @@ __wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref)
  *     Discard the contents of a WT_REF structure (optionally including the pages it references).
  */
 void
-__wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages)
+__wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages, uint8_t *addr_fill)
 {
     WT_IKEY *ikey;
 
@@ -274,7 +275,7 @@ __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pa
      */
     if (free_pages && ref->page != NULL) {
         __wt_page_modify_clear(session, ref->page);
-        __wt_page_out(session, &ref->page);
+        __wt_page_out(session, &ref->page, (uint8_t *)0x99999999);
     }
 
     /*
@@ -293,7 +294,7 @@ __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pa
     }
 
     /* Free any address allocation. */
-    __wt_ref_addr_free(session, ref);
+    __wt_ref_addr_free(session, ref, addr_fill);
 
     /* Free any backing fast-truncate memory. */
     __wt_free(session, ref->ft_info.del);
@@ -306,13 +307,13 @@ __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pa
  *     Discard a WT_PAGE_COL_INT or WT_PAGE_ROW_INT page.
  */
 static void
-__free_page_int(WT_SESSION_IMPL *session, WT_PAGE *page)
+__free_page_int(WT_SESSION_IMPL *session, WT_PAGE *page, uint8_t *addr_fill)
 {
     WT_PAGE_INDEX *pindex;
     uint32_t i;
 
     for (pindex = WT_INTL_INDEX_GET_SAFE(page), i = 0; i < pindex->entries; ++i)
-        __wt_free_ref(session, pindex->index[i], page->type, false);
+        __wt_free_ref(session, pindex->index[i], page->type, false, addr_fill);
 
     __wt_free(session, pindex);
 }
@@ -339,7 +340,7 @@ __wt_free_ref_index(WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pind
          */
         WT_ASSERT(session, __wt_hazard_check_assert(session, ref, false));
 
-        __wt_free_ref(session, ref, page->type, free_pages);
+        __wt_free_ref(session, ref, page->type, free_pages, (uint8_t *)0x45454545);
     }
     __wt_free(session, pindex);
 }

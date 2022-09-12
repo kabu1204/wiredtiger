@@ -713,7 +713,7 @@ err:
         __wt_free(session, trk);
     }
     if (page != NULL)
-        __wt_page_out(session, &page);
+        __wt_page_out(session, &page, (uint8_t *)0x11111111);
     return (ret);
 }
 
@@ -1257,7 +1257,7 @@ __slvg_col_build_internal(WT_SESSION_IMPL *session, uint32_t leaf_cnt, WT_STUFF 
     if (0) {
 err:
         __wt_free(session, addr);
-        __wt_page_out(session, &page);
+        __wt_page_out(session, &page, (uint8_t *)0x11111111);
     }
     return (ret);
 }
@@ -1329,7 +1329,7 @@ __slvg_col_build_leaf(WT_SESSION_IMPL *session, WT_TRACK *trk, WT_REF *ref)
      * should the salvage run eventually fail, the original information would have been lost.) Clear
      * the reference addr so eviction doesn't free the underlying blocks.
      */
-    __wt_ref_addr_free(session, ref);
+    __wt_ref_addr_free(session, ref, (uint8_t *)0x2c2c2c2c);
 
     /*
      * Reconciliation may skip a key/value pair (based on timestamps), and in that case, if the
@@ -1792,7 +1792,7 @@ __slvg_row_trk_update_start(WT_SESSION_IMPL *session, WT_ITEM *stop, uint32_t sl
 
 err:
     if (page != NULL)
-        __wt_page_out(session, &page);
+        __wt_page_out(session, &page, (uint8_t *)0x11111111);
     __wt_scr_free(session, &dsk);
     __wt_scr_free(session, &key);
 
@@ -1877,7 +1877,7 @@ __slvg_row_build_internal(WT_SESSION_IMPL *session, uint32_t leaf_cnt, WT_STUFF 
     if (0) {
 err:
         __wt_free(session, addr);
-        __wt_page_out(session, &page);
+        __wt_page_out(session, &page, (uint8_t *)0x11111111);
     }
     return (ret);
 }
@@ -1985,7 +1985,7 @@ __slvg_row_build_leaf(WT_SESSION_IMPL *session, WT_TRACK *trk, WT_REF *ref, WT_S
      * should the salvage run eventually fail, the original information would have been lost.) Clear
      * the reference addr so eviction doesn't free the underlying blocks.
      */
-    __wt_ref_addr_free(session, ref);
+    __wt_ref_addr_free(session, ref, (uint8_t *)0x1b1b1b1b);
 
     /*
      * Reconciliation may skip a key/value pair (based on timestamps), and in that case, if the

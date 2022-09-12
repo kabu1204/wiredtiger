@@ -25,7 +25,7 @@ __rec_child_deleted(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_REF *ref,
      * underlying disk blocks and don't write anything in the internal page.
      */
     if (page_del == NULL)
-        return (__wt_ref_block_free(session, ref));
+        return (__wt_ref_block_free(session, ref, (uint8_t *)0x28282828));
 
     /*
      * The truncate may not yet be visible to us. In that case, we proceed as with any change not
@@ -102,7 +102,7 @@ __rec_child_deleted(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_REF *ref,
      * is ever a read into this part of the name space again, the cache read function instantiates
      * an entirely new page.)
      */
-    WT_RET(__wt_ref_block_free(session, ref));
+    WT_RET(__wt_ref_block_free(session, ref, (uint8_t*)0x10510510));
 
     /*
      * Globally visible fast-truncate information is never used again, a NULL value is identical.

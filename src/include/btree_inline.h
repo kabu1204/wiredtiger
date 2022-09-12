@@ -1510,6 +1510,25 @@ __wt_ref_addr_copy(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY *copy)
     if (__wt_off_page(page, addr)) {
         WT_TIME_AGGREGATE_COPY(&copy->ta, &addr->ta);
         copy->type = addr->type;
+        WT_ASSERT_ALWAYS(session, (addr->addr != (uint8_t *)0xc2c2c2c2
+                                   && addr->addr != (uint8_t *)0x037b0fa2
+                                   && addr->addr != (uint8_t *)0x99999999
+                                   && addr->addr != (uint8_t *)0x69696969
+                                   && addr->addr != (uint8_t *)0x78787878
+                                   && addr->addr != (uint8_t *)0xd5d5d5d5
+                                   && addr->addr != (uint8_t *)0x11111111
+                                   && addr->addr != (uint8_t *)0x2c2c2c2c
+                                   && addr->addr != (uint8_t *)0x1b1b1b1b
+                                   && addr->addr != (uint8_t *)0xcafebabe
+                                   && addr->addr != (uint8_t *)0xbaadbabe
+                                   && addr->addr != (uint8_t *)0x45454545
+                                   && addr->addr != (uint8_t *)0x9b9b9b9b
+                                   && addr->addr != (uint8_t *)0xcafebeef
+                                   && addr->addr != (uint8_t *)0x24412441
+                                   && addr->addr != (uint8_t *)0x28282828
+                                   && addr->addr != (uint8_t *)0x10510510
+                                   && addr->addr != (uint8_t *)0x00babeee
+                                   && addr->addr != (uint8_t *)0xcacacaca), "WT_-9512: bad addr!");
         memcpy(copy->addr, addr->addr, copy->size = addr->size);
         return (true);
     }
@@ -1552,7 +1571,7 @@ __wt_ref_addr_copy(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY *copy)
  *     Free the on-disk block for a reference and clear the address.
  */
 static inline int
-__wt_ref_block_free(WT_SESSION_IMPL *session, WT_REF *ref)
+__wt_ref_block_free(WT_SESSION_IMPL *session, WT_REF *ref, uint8_t *addr_fill)
 {
     WT_ADDR_COPY addr;
 
@@ -1562,7 +1581,7 @@ __wt_ref_block_free(WT_SESSION_IMPL *session, WT_REF *ref)
     WT_RET(__wt_btree_block_free(session, addr.addr, addr.size));
 
     /* Clear the address (so we don't free it twice). */
-    __wt_ref_addr_free(session, ref);
+    __wt_ref_addr_free(session, ref, addr_fill);
     return (0);
 }
 

@@ -449,7 +449,7 @@ __wt_page_inmem(WT_SESSION_IMPL *session, WT_REF *ref, const void *image, uint32
     return (0);
 
 err:
-    __wt_page_out(session, &page);
+    __wt_page_out(session, &page, (uint8_t *)0xd5d5d5d5);
     return (ret);
 }
 
