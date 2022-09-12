@@ -2901,7 +2901,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-1
     tags: ["WT-9512"]
@@ -2913,7 +2913,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-2
     tags: ["WT-9512"]
@@ -2925,7 +2925,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-3
     tags: ["WT-9512"]
@@ -2937,7 +2937,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-4
     tags: ["WT-9512"]
@@ -2949,7 +2949,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-5
     tags: ["WT-9512"]
@@ -2961,7 +2961,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-6
     tags: ["WT-9512"]
@@ -2973,7 +2973,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-7
     tags: ["WT-9512"]
@@ -2985,7 +2985,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-8
     tags: ["WT-9512"]
@@ -2997,7 +2997,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-9
     tags: ["WT-9512"]
@@ -3009,7 +3009,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-10
     tags: ["WT-9512"]
@@ -3021,7 +3021,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-11
     tags: ["WT-9512"]
@@ -3033,7 +3033,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-12
     tags: ["WT-9512"]
@@ -3045,7 +3045,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-13
     tags: ["WT-9512"]
@@ -3057,7 +3057,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-14
     tags: ["WT-9512"]
@@ -3069,7 +3069,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-15
     tags: ["WT-9512"]
@@ -3081,7 +3081,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-16
     tags: ["WT-9512"]
@@ -3093,7 +3093,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-17
     tags: ["WT-9512"]
@@ -3105,7 +3105,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-18
     tags: ["WT-9512"]
@@ -3117,7 +3117,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-19
     tags: ["WT-9512"]
@@ -3129,7 +3129,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-20
     tags: ["WT-9512"]
@@ -3141,7 +3141,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-21
     tags: ["WT-9512"]
@@ -3153,7 +3153,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-22
     tags: ["WT-9512"]
@@ -3165,7 +3165,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-23
     tags: ["WT-9512"]
@@ -3177,7 +3177,7 @@ tasks:
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-sanitizer-test-no-barrier
     tags: ["stress-test-no-barrier-sanitizer"]
