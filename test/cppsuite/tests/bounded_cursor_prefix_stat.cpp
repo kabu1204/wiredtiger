@@ -26,23 +26,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "src/bound/bound_set.h"
 #include "src/common/constants.h"
+#include "src/common/logger.h"
 #include "src/common/random_generator.h"
 #include "src/main/test.h"
 
 using namespace test_harness;
 
 /*
- * In this test, we want to verify that search_near with prefix enabled only traverses the portion
- * of the tree that follows the prefix portion of the search key. The test is composed of a populate
- * phase followed by a read phase. The populate phase will insert a set of random generated keys
- * with a prefix of aaa -> zzz. During the read phase, we have one read thread that performs:
- *  - Spawning multiple threads to perform one prefix search near.
+ * In this test, we want to verify that search_near with cursor bounds set the prefix of a given key
+ * only traverses the portion of the tree that follows the prefix. The test is composed of a
+ * populate phase followed by a read phase. The populate phase will insert a set of random generated
+ * keys with a prefix of aaa -> zzz. During the read phase, we have one read thread that performs:
+ *  - Spawning multiple threads to perform one search near with bounds.
  *  - Waiting on all threads to finish.
  *  - Using WiredTiger statistics to validate that the number of entries traversed is within
  * bounds of the search key.
  */
-class search_near_01 : public test {
+class bounded_cursor_prefix_stat : public test {
     uint64_t keys_per_prefix = 0;
     uint64_t srchkey_len = 0;
     const std::string ALPHABET{"abcdefghijklmnopqrstuvwxyz"};
@@ -101,7 +103,7 @@ class search_near_01 : public test {
     }
 
     public:
-    search_near_01(const test_args &args) : test(args)
+    bounded_cursor_prefix_stat(const test_args &args) : test(args)
     {
         init_operation_tracker();
     }
@@ -186,39 +188,39 @@ class search_near_01 : public test {
         int cmpp = 0;
 
         scoped_cursor cursor = tc->session.open_scoped_cursor(collection_name);
-        testutil_check(cursor->reconfigure(cursor.get(), "prefix_search=true"));
-        /* Generate search prefix key of random length between a -> zzz. */
+        /* Generate a search prefix key of random length between a -> zzz. */
         srch_key = random_generator::instance().generate_random_string(
           srchkey_len, characters_type::ALPHABET);
         logger::log_msg(LOG_TRACE,
           "Search near thread {" + std::to_string(tc->id) +
-            "} performing prefix search near with key: " + srch_key);
+            "} performing bounded search near with key: " + srch_key);
 
         /*
          * Read at timestamp 10, so that no keys are visible to this transaction. When performing
-         * prefix search near, we expect the search to early exit out of its prefix range and return
-         * WT_NOTFOUND.
+         * bounded search near, we expect the search to early exit out of its prefix key range and
+         * return WT_NOTFOUND.
          */
         tc->txn.begin("read_timestamp=" + tc->tsm->decimal_to_hex(10));
-        if (tc->txn.active()) {
-            cursor->set_key(cursor.get(), srch_key.c_str());
-            testutil_assert(cursor->search_near(cursor.get(), &cmpp) == WT_NOTFOUND);
-            tc->txn.add_op();
+        cursor->set_key(cursor.get(), srch_key.c_str());
+        bound_set prefix_bounds = bound_set(srch_key);
+        prefix_bounds.apply(cursor);
+        cursor->set_key(cursor.get(), srch_key.c_str());
+        testutil_assert(cursor->search_near(cursor.get(), &cmpp) == WT_NOTFOUND);
+        cursor->reset(cursor.get());
 
-            /*
-             * There is an edge case where we may not early exit the prefix search near call because
-             * the specified prefix matches the rest of the entries in the tree.
-             *
-             * In this test, the keys in our database start with prefixes aaa -> zzz. If we search
-             * with a prefix such as "z", we will not early exit the search near call because the
-             * rest of the keys will also start with "z" and match the prefix. The statistic will
-             * stay the same if we do not early exit search near, track this through incrementing
-             * the number of z key searches we have done this iteration.
-             */
-            if (srch_key == "z" || srch_key == "zz" || srch_key == "zzz")
-                ++z_key_searches;
-            tc->txn.rollback();
-        }
+        /*
+         * There is an edge case where we may not early exit the bounded search near call because
+         * the specified prefix matches the rest of the entries in the tree.
+         *
+         * In this test, the keys in our database start with prefixes aaa -> zzz. If we search with
+         * a prefix such as "z", we will not early exit the search near call because the rest of the
+         * keys will also start with "z" and match the prefix. The statistic will stay the same if
+         * we do not early exit search near, track this through incrementing the number of z key
+         * searches we have done this iteration.
+         */
+        if (srch_key == "z" || srch_key == "zz" || srch_key == "zzz")
+            ++z_key_searches;
+        tc->txn.rollback();
     }
 
     void
@@ -248,15 +250,17 @@ class search_near_01 : public test {
 
         /*
          * The number of expected entries is calculated to account for the maximum allowed entries
-         * per search near function call. The key we search near can be different in length, which
-         * will increase the number of entries search by a factor of 26.
+         * per search near call. The key we search near can be different in length, which will
+         * increase the number of entries search by a factor of 26.
+         *
+         * As we walk forwards and backwards we multiply the value by 2.
          */
-        expected_entries = keys_per_prefix * pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len);
+        expected_entries = keys_per_prefix * pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len) * 2;
         while (tc->running()) {
             metrics_monitor::get_stat(
               tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &prev_entries_stat);
-            metrics_monitor::get_stat(tc->stat_cursor,
-              WT_STAT_CONN_CURSOR_SEARCH_NEAR_PREFIX_FAST_PATHS, &prev_prefix_stat);
+            metrics_monitor::get_stat(
+              tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prev_prefix_stat);
 
             thread_manager tm;
             for (uint64_t i = 0; i < num_threads; ++i) {
@@ -281,23 +285,23 @@ class search_near_01 : public test {
             metrics_monitor::get_stat(
               tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &entries_stat);
             metrics_monitor::get_stat(
-              tc->stat_cursor, WT_STAT_CONN_CURSOR_SEARCH_NEAR_PREFIX_FAST_PATHS, &prefix_stat);
+              tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prefix_stat);
             logger::log_msg(LOG_TRACE,
               "Read thread skipped entries: " + std::to_string(entries_stat - prev_entries_stat) +
-                " prefix early exit: " +
+                " search near early exit: " +
                 std::to_string(prefix_stat - prev_prefix_stat - z_key_searches));
             /*
-             * It is possible that WiredTiger increments the entries skipped stat irrelevant to
-             * prefix search near. This is dependent on how many read threads are present in the
+             * It is possible that WiredTiger increments the entries skipped stat separately to the
+             * bounded search near. This is dependent on how many read threads are present in the
              * test. Account for this by creating a small buffer using thread count. Assert that the
-             * number of expected entries is the upper limit which the prefix search near can
+             * number of expected entries is the upper limit which the bounded search near can
              * traverse.
              *
              * Assert that the number of expected entries is the maximum allowed limit that the
-             * prefix search nears can traverse and that the prefix fast path has increased by the
-             * number of threads minus the number of search nears with z key.
+             * bounded search nears can traverse and that the bounded key fast path statistic has
+             * increased by the number of threads minus the number of search nears with z key.
              */
-            testutil_assert(num_threads * expected_entries + (3 * num_threads) >=
+            testutil_assert(num_threads * expected_entries + (2 * num_threads) >=
               entries_stat - prev_entries_stat);
             testutil_assert(prefix_stat - prev_prefix_stat == num_threads - z_key_searches);
             z_key_searches = 0;
