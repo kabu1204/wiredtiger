@@ -2438,7 +2438,7 @@ __rec_write_wrapup(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_PAGE *page)
             break;
 
         for (i = 0; i < 1000; i++)
-            WT_RET(__wt_ref_block_free(session, ref, (uint8_t*)0x24412441));
+            WT_RET(__wt_ref_block_free(session, ref, (uint8_t *)0x24412441));
         break;
     case WT_PM_REC_EMPTY: /* Page deleted */
         break;

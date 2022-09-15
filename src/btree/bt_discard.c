@@ -254,7 +254,8 @@ __wt_ref_addr_free(WT_SESSION_IMPL *session, WT_REF *ref, uint8_t *addr_fill)
  *     Discard the contents of a WT_REF structure (optionally including the pages it references).
  */
 void
-__wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages, uint8_t *addr_fill)
+__wt_free_ref(
+  WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages, uint8_t *addr_fill)
 {
     WT_IKEY *ikey;
 

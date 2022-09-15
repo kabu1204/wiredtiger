@@ -1,0 +1,21 @@
+# Configuration for ruby.
+duration_seconds=3200,
+cache_size_mb=250,
+workload_manager=
+(
+    custom_config=
+    (
+        op_rate=0s,
+        thread_count=1
+    ),
+    read_config=
+    (
+        op_rate=0s,
+        thread_count=1
+    ),
+    populate_config=
+    (
+        # Only one empty collection is required.
+        collection_count=1
+    ),
+)

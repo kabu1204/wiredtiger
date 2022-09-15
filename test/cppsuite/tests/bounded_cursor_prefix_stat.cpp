@@ -223,91 +223,91 @@ class bounded_cursor_prefix_stat : public test {
         tc->txn.rollback();
     }
 
-    void
-    read_operation(thread_worker *tc) override final
-    {
-        /* Make sure that thread statistics cursor is null before we open it. */
-        testutil_assert(tc->stat_cursor.get() == nullptr);
-        /* This test will only work with one read thread. */
-        testutil_assert(tc->thread_count == 1);
-        configuration *workload_config, *read_config;
-        std::vector<thread_worker *> workers;
-        std::atomic<int64_t> z_key_searches;
-        int64_t entries_stat, expected_entries, prefix_stat, prev_entries_stat, prev_prefix_stat;
-        int num_threads;
+    // void
+    // read_operation(thread_worker *tc) override final
+    // {
+    //     /* Make sure that thread statistics cursor is null before we open it. */
+    //     testutil_assert(tc->stat_cursor.get() == nullptr);
+    //     /* This test will only work with one read thread. */
+    //     testutil_assert(tc->thread_count == 1);
+    //     configuration *workload_config, *read_config;
+    //     std::vector<thread_worker *> workers;
+    //     std::atomic<int64_t> z_key_searches;
+    //     int64_t entries_stat, expected_entries, prefix_stat, prev_entries_stat, prev_prefix_stat;
+    //     int num_threads;
 
-        prev_entries_stat = 0;
-        prev_prefix_stat = 0;
-        num_threads = _config->get_int("search_near_threads");
-        tc->stat_cursor = tc->session.open_scoped_cursor(STATISTICS_URI);
-        workload_config = _config->get_subconfig(WORKLOAD_MANAGER);
-        read_config = workload_config->get_subconfig(READ_OP_CONFIG);
-        z_key_searches = 0;
+    //     prev_entries_stat = 0;
+    //     prev_prefix_stat = 0;
+    //     num_threads = _config->get_int("search_near_threads");
+    //     tc->stat_cursor = tc->session.open_scoped_cursor(STATISTICS_URI);
+    //     workload_config = _config->get_subconfig(WORKLOAD_MANAGER);
+    //     read_config = workload_config->get_subconfig(READ_OP_CONFIG);
+    //     z_key_searches = 0;
 
-        logger::log_msg(LOG_INFO,
-          type_string(tc->type) + " thread commencing. Spawning " + std::to_string(num_threads) +
-            " search near threads.");
+    //     logger::log_msg(LOG_INFO,
+    //       type_string(tc->type) + " thread commencing. Spawning " + std::to_string(num_threads) +
+    //         " search near threads.");
 
-        /*
-         * The number of expected entries is calculated to account for the maximum allowed entries
-         * per search near call. The key we search near can be different in length, which will
-         * increase the number of entries search by a factor of 26.
-         *
-         * As we walk forwards and backwards we multiply the value by 2.
-         */
-        expected_entries = keys_per_prefix * pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len) * 2;
-        while (tc->running()) {
-            metrics_monitor::get_stat(
-              tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &prev_entries_stat);
-            metrics_monitor::get_stat(
-              tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prev_prefix_stat);
+    //     /*
+    //      * The number of expected entries is calculated to account for the maximum allowed entries
+    //      * per search near call. The key we search near can be different in length, which will
+    //      * increase the number of entries search by a factor of 26.
+    //      *
+    //      * As we walk forwards and backwards we multiply the value by 2.
+    //      */
+    //     expected_entries = keys_per_prefix * pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len) * 2;
+    //     while (tc->running()) {
+    //         metrics_monitor::get_stat(
+    //           tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &prev_entries_stat);
+    //         // metrics_monitor::get_stat(
+    //           // tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prev_prefix_stat);
 
-            thread_manager tm;
-            for (uint64_t i = 0; i < num_threads; ++i) {
-                /* Get a collection and find a cached cursor. */
-                collection &coll = tc->db.get_random_collection();
-                thread_worker *search_near_tc = new thread_worker(i, thread_type::READ, read_config,
-                  connection_manager::instance().create_session(), tc->tsm, tc->op_tracker, tc->db);
-                workers.push_back(search_near_tc);
-                tm.add_thread(perform_search_near, search_near_tc, coll.name, srchkey_len,
-                  std::ref(z_key_searches));
-            }
+    //         thread_manager tm;
+    //         for (uint64_t i = 0; i < num_threads; ++i) {
+    //             /* Get a collection and find a cached cursor. */
+    //             collection &coll = tc->db.get_random_collection();
+    //             thread_worker *search_near_tc = new thread_worker(i, thread_type::READ, read_config,
+    //               connection_manager::instance().create_session(), tc->tsm, tc->op_tracker, tc->db);
+    //             workers.push_back(search_near_tc);
+    //             tm.add_thread(perform_search_near, search_near_tc, coll.name, srchkey_len,
+    //               std::ref(z_key_searches));
+    //         }
 
-            tm.join();
+    //         tm.join();
 
-            /* Cleanup our workers. */
-            for (auto &it : workers) {
-                delete it;
-                it = nullptr;
-            }
-            workers.clear();
+    //         /* Cleanup our workers. */
+    //         for (auto &it : workers) {
+    //             delete it;
+    //             it = nullptr;
+    //         }
+    //         workers.clear();
 
-            metrics_monitor::get_stat(
-              tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &entries_stat);
-            metrics_monitor::get_stat(
-              tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prefix_stat);
-            logger::log_msg(LOG_TRACE,
-              "Read thread skipped entries: " + std::to_string(entries_stat - prev_entries_stat) +
-                " search near early exit: " +
-                std::to_string(prefix_stat - prev_prefix_stat - z_key_searches));
-            /*
-             * It is possible that WiredTiger increments the entries skipped stat separately to the
-             * bounded search near. This is dependent on how many read threads are present in the
-             * test. Account for this by creating a small buffer using thread count. Assert that the
-             * number of expected entries is the upper limit which the bounded search near can
-             * traverse.
-             *
-             * Assert that the number of expected entries is the maximum allowed limit that the
-             * bounded search nears can traverse and that the bounded key fast path statistic has
-             * increased by the number of threads minus the number of search nears with z key.
-             */
-            testutil_assert(num_threads * expected_entries + (2 * num_threads) >=
-              entries_stat - prev_entries_stat);
-            testutil_assert(prefix_stat - prev_prefix_stat == num_threads - z_key_searches);
-            z_key_searches = 0;
-            tc->sleep();
-        }
-        delete read_config;
-        delete workload_config;
-    }
+    //         metrics_monitor::get_stat(
+    //           tc->stat_cursor, WT_STAT_CONN_CURSOR_NEXT_SKIP_LT_100, &entries_stat);
+    //         // metrics_monitor::get_stat(
+    //           // tc->stat_cursor, WT_STAT_CONN_CURSOR_BOUNDS_NEXT_EARLY_EXIT, &prefix_stat);
+    //         logger::log_msg(LOG_TRACE,
+    //           "Read thread skipped entries: " + std::to_string(entries_stat - prev_entries_stat) +
+    //             " search near early exit: " +
+    //             std::to_string(prefix_stat - prev_prefix_stat - z_key_searches));
+    //         /*
+    //          * It is possible that WiredTiger increments the entries skipped stat separately to the
+    //          * bounded search near. This is dependent on how many read threads are present in the
+    //          * test. Account for this by creating a small buffer using thread count. Assert that the
+    //          * number of expected entries is the upper limit which the bounded search near can
+    //          * traverse.
+    //          *
+    //          * Assert that the number of expected entries is the maximum allowed limit that the
+    //          * bounded search nears can traverse and that the bounded key fast path statistic has
+    //          * increased by the number of threads minus the number of search nears with z key.
+    //          */
+    //         testutil_assert(num_threads * expected_entries + (2 * num_threads) >=
+    //           entries_stat - prev_entries_stat);
+    //         testutil_assert(prefix_stat - prev_prefix_stat == num_threads - z_key_searches);
+    //         z_key_searches = 0;
+    //         tc->sleep();
+    // //     }
+    //     delete read_config;
+    // //     delete workload_config;
+    // }
 };

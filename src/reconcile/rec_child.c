@@ -102,7 +102,7 @@ __rec_child_deleted(WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_REF *ref,
      * is ever a read into this part of the name space again, the cache read function instantiates
      * an entirely new page.)
      */
-    WT_RET(__wt_ref_block_free(session, ref, (uint8_t*)0x10510510));
+    WT_RET(__wt_ref_block_free(session, ref, (uint8_t *)0x10510510));
 
     /*
      * Globally visible fast-truncate information is never used again, a NULL value is identical.
