@@ -1132,6 +1132,7 @@ tasks:
           test_name: hs_cleanup
   
   - name: cppsuite-9512-ruby
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1146,6 +1147,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-1
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1160,6 +1162,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-2
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1174,6 +1177,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-3
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1188,6 +1192,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-4
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1202,6 +1207,7 @@ tasks:
           test_name: ruby
 
   - name: cppsuite-9512-ruby-5
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1216,6 +1222,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-6
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1230,6 +1237,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-7
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1244,6 +1252,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-8
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1258,6 +1267,7 @@ tasks:
           test_name: ruby
   
   - name: cppsuite-9512-ruby-9
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -1272,6 +1282,337 @@ tasks:
           test_name: ruby
     
   - name: cppsuite-9512-ruby-10
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+
+  - name: cppsuite-9512-ruby-01
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-11
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-12
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-13
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-14
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+
+  - name: cppsuite-9512-ruby-15
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-16
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-17
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-18
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-19
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+    
+  - name: cppsuite-9512-ruby-20
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+
+  - name: cppsuite-9512-ruby-02
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-21
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-22
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-23
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-24
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+
+  - name: cppsuite-9512-ruby-25
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-26
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-27
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-28
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+  
+  - name: cppsuite-9512-ruby-29
+    tags: ["9512-ruby"]
+    depends_on:
+      - name: compile
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger with builtins"
+        vars:
+          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "cppsuite test"
+        vars:
+          test_config: debug_mode=(cursor_copy=true)
+          test_config_filename: configs/ruby_default.txt
+          test_name: ruby
+    
+  - name: cppsuite-9512-ruby-30
+    tags: ["9512-ruby"]
     depends_on:
       - name: compile
     commands:
@@ -4575,21 +4916,14 @@ buildvariants:
     - name: ".stress-test-no-barrier"
     - name: ".WT-9512"
     - name: format-abort-recovery-stress-test
-    - name: cppsuite-9512-ruby
-    - name: cppsuite-9512-ruby-1
-    - name: cppsuite-9512-ruby-2
-    - name: cppsuite-9512-ruby-3
-    - name: cppsuite-9512-ruby-4
-    - name: cppsuite-9512-ruby-5
-    - name: cppsuite-9512-ruby-6
-    - name: cppsuite-9512-ruby-7
-    - name: cppsuite-9512-ruby-8
-    - name: cppsuite-9512-ruby-9
-    - name: cppsuite-9512-ruby-10
+    - name: ".9512-ruby"
   display_tasks:
     - name: WT-9512
       execution_tasks:
       - ".WT-9512"
+    - name: 9512-ruby
+      execution_tasks:
+      - ".9512-ruby"
 
 
 - name: ubuntu2004-perf-tests
