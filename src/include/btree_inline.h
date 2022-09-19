@@ -2162,6 +2162,7 @@ __wt_btcur_skip_page(
     *skipp = false; /* Default to reading */
 
     btree = S2BT(session);
+    // __wt_errx(session, "__wt_btcur_skip_page: before ref_addr_copy call. PING1");
 
     /* Don't skip pages in FLCS trees; deleted records need to read back as 0. */
     if (btree->type == BTREE_COL_FIX)

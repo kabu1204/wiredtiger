@@ -73,18 +73,6 @@ class ruby : public test {
         test::run();
     }
 
-    // void
-    // populate(database &, timestamp_manager *, configuration *, operation_tracker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "populate: nothing done");
-    // }
-
-    // void
-    // checkpoint_operation(thread_worker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "checkpoint_operation: nothing done");
-    // }
-
     void
     custom_operation(thread_worker *tc) override final
     {
@@ -92,18 +80,20 @@ class ruby : public test {
         testutil_assert(collection_count > 0);
         collection &coll = tc->db.get_collection(collection_count - 1);
         scoped_cursor cursor = tc->session.open_scoped_cursor(coll.name);
+        scoped_cursor eviction_cursor = tc->session.open_scoped_cursor(coll.name, "debug=(release_evict)");
 
         while (tc->running()) {
             tc->sleep();
 
             /* Insert the current cache size value using a random key. */
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 100; i++) {
                 const std::string key = std::to_string(i);
                 const std::string value = std::to_string(i);
 
                 tc->txn.try_begin();
                 if (!tc->insert(cursor, coll.id, key, value)) {
                     tc->txn.rollback();
+
                 } else if (tc->txn.can_commit()) {
                     /*
                      * The transaction can fit in the current cache size and is ready to be
@@ -114,25 +104,16 @@ class ruby : public test {
                 }
             }
             testutil_check(tc->session->checkpoint(tc->session.get(), nullptr));
-            logger::log_msg(LOG_ERROR, "Will is sitting inside the office.");
+            eviction_cursor->set_key(eviction_cursor.get(), "1");
+            testutil_check(eviction_cursor->search(eviction_cursor.get()));
+            testutil_check(eviction_cursor->reset(eviction_cursor.get()));
+            // logger::log_msg(LOG_ERROR, "Will is sitting inside the office.");
 
         }
 
         /* Make sure the last transaction is rolled back now the work is finished. */
         tc->txn.try_rollback();
     }
-
-    // void
-    // insert_operation(thread_worker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "insert_operation: nothing done");
-    // }
-
-    // void
-    // read_operation(thread_worker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "read_operation: nothing done");
-    // }
 
      void
     read_operation(thread_worker *tc) override final
@@ -152,27 +133,10 @@ class ruby : public test {
             while (next_cursor->next(next_cursor.get())!= WT_NOTFOUND){
             }
             testutil_check(next_cursor->reset(next_cursor.get()));
-            logger::log_msg(LOG_ERROR, "Andrew is in the office");
+            // logger::log_msg(LOG_ERROR, "Andrew is in the office");
         }
     }
 
-    // void
-    // remove_operation(thread_worker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "remove_operation: nothing done");
-    // }
-
-    // void
-    // update_operation(thread_worker *) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "update_operation: nothing done");
-    // }
-
-    // void
-    // validate(const std::string &, const std::string &, database &) override final
-    // {
-    //     logger::log_msg(LOG_WARN, "validate: nothing done");
-    // }
 };
 
 } // namespace test_harness
