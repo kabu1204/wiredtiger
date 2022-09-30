@@ -1463,6 +1463,11 @@ __rollback_to_stable_btree_hs_truncate(WT_SESSION_IMPL *session, uint32_t btree_
     wt_timestamp_t hs_start_ts;
     uint64_t hs_counter;
     uint32_t hs_btree_id;
+#ifdef HAVE_DIAGNOSTIC
+    WT_CURSOR *hs_cursor_check;
+
+    hs_cursor_check = NULL;
+#endif
 
     hs_cursor_start = hs_cursor_stop = NULL;
     hs_btree_id = 0;
@@ -1522,6 +1527,19 @@ err:
         WT_TRET(hs_cursor_start->close(hs_cursor_start));
     if (hs_cursor_stop != NULL)
         WT_TRET(hs_cursor_stop->close(hs_cursor_stop));
+
+#ifdef HAVE_DIAGNOSTIC
+    /*
+     * This function should remove *all* history store updates for the btree. Confirm this is the
+     * case.
+     */
+    WT_ERR(__wt_curhs_open(session, NULL, &hs_cursor_check));
+    hs_cursor_check->set_key(hs_cursor_check, 1, btree_id);
+    WT_ASSERT(session, __wt_curhs_search_near_after(session, hs_cursor_check) == WT_NOTFOUND);
+    if (hs_cursor_check != NULL)
+        WT_TRET(hs_cursor_check->close(hs_cursor_check));
+
+#endif
 
     return (ret);
 }
@@ -1644,6 +1662,47 @@ __rollback_to_stable_check_btree_modified(WT_SESSION_IMPL *session, const char *
 
     ret = __wt_conn_dhandle_find(session, uri, NULL);
     *modified = ret == 0 && S2BT(session)->modified;
+    return (ret);
+}
+
+/*
+ * __assert_history_store_rolled_back --
+ *     Is RTS was successful there should be no history store entries for this btree with a start_ts
+ *     greater than the rollback timestamp.
+ */
+static int
+__assert_history_store_rolled_back(
+  WT_SESSION_IMPL *session, uint32_t btree_id, wt_timestamp_t rollback_timestamp)
+{
+    WT_CURSOR *hs_cursor_check;
+    WT_DECL_ITEM(hs_key);
+    WT_DECL_RET;
+    wt_timestamp_t hs_start_ts;
+    uint64_t hs_counter;
+    uint32_t hs_btree_id;
+
+    if (F_ISSET(S2C(session), WT_CONN_IN_MEMORY))
+        return (0);
+
+    hs_cursor_check = NULL;
+    WT_ERR(__wt_scr_alloc(session, 0, &hs_key));
+
+    /* Open a history store start cursor. */
+    WT_ERR(__wt_curhs_open(session, NULL, &hs_cursor_check));
+    F_SET(hs_cursor_check, WT_CURSTD_HS_READ_COMMITTED);
+
+    hs_cursor_check->set_key(hs_cursor_check, 1, btree_id);
+    WT_ERR_NOTFOUND_OK(__wt_curhs_search_near_after(session, hs_cursor_check), false);
+    while (hs_cursor_check->next(hs_cursor_check) != WT_NOTFOUND) {
+        hs_cursor_check->get_key(hs_cursor_check, &hs_btree_id, hs_key, &hs_start_ts, &hs_counter);
+        WT_ASSERT(session, hs_start_ts < rollback_timestamp);
+    }
+
+err:
+    __wt_scr_free(session, &hs_key);
+    if (hs_cursor_check != NULL)
+        WT_TRET(hs_cursor_check->close(hs_cursor_check));
+
     return (ret);
 }
 
@@ -1800,6 +1859,12 @@ __rollback_to_stable_btree_apply(
         btree_id = (uint32_t)cval.val;
         WT_ERR(__rollback_to_stable_btree_hs_truncate(session, btree_id));
     }
+
+#ifdef HAVE_DIAGNOSTIC
+    WT_ERR(__wt_config_getones(session, config, "id", &cval));
+    btree_id = (uint32_t)cval.val;
+    WT_ERR(__assert_history_store_rolled_back(session, btree_id, rollback_timestamp));
+#endif
 
 err:
     if (dhandle_allocated)
