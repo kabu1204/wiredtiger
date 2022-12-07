@@ -1,0 +1,67 @@
+{
+    "Test Name": "evict-btree.wtperf",
+    "config": {
+        "arguments": null,
+        "batch_file": null,
+        "exec_path": "./wtperf",
+        "git_root": "../..",
+        "home_dir": "WT_TEST",
+        "improved_accuracy": true,
+        "json_info": {
+            "evergreen_task_info": {
+                "branch_name": "develop",
+                "distro_id": "ubuntu2004-arm64-large",
+                "execution": "0",
+                "is_patch": "true",
+                "task_id": "wiredtiger_ubuntu2004_arm64_perf_tests_perf_test_evict_btree_patch_185cb659029fc4e5213783c5d290aa0fab5ab043_638ec1b09ccd4e3aaed5ad55_22_12_06_04_15_01",
+                "task_name": "perf-test-evict-btree",
+                "version_id": "638ec1b09ccd4e3aaed5ad55"
+            }
+        },
+        "operations": [
+            "load",
+            "read"
+        ],
+        "run_max": 1,
+        "test": "../../../bench/wtperf/runners/evict-btree.wtperf",
+        "verbose": true
+    },
+    "git": {
+        "branch": {
+            "name": "develop"
+        },
+        "head_commit": {
+            "author": "Alex Gorrod",
+            "hash": "185cb659029fc4e5213783c5d290aa0fab5ab043",
+            "message": "WT-10164 Split apart the rollback to stable implementation into multiple files (#8488)\n\nMove RTS into src/rollback_to_stable, and split the single source file into logical chunks. Also added a new top-level subsystem object for RTS, so all external callers use function pointers.\r\nSee the JIRA ticket for context on the changes made."
+        },
+        "num_commits": 23005,
+        "stats": {
+            "files_changed": 0
+        }
+    },
+    "metrics": [
+        {
+            "name": "Load time",
+            "value": 2.55,
+            "values": [
+                2.55,
+                3.66,
+                4.77
+            ]
+        },
+        {
+            "name": "Read count",
+            "value": 89487991,
+            "values": [
+                89487991
+            ]
+        }
+    ],
+    "system": {
+        "cpu_logical_cores": 8,
+        "cpu_physical_cores": 8,
+        "platform": "Linux-5.4.0-1009-aws-aarch64-with-glibc2.31",
+        "total_physical_memory_gb": 30.64553451538086
+    }
+}

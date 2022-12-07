@@ -91,6 +91,7 @@ def to_value_list(reported_stats: List[PerfStat], brief: bool):
     stats_list = []
     for stat in reported_stats:
         stat_list = stat.get_value_list(brief=brief)
+        print(f"DBG - stat_list = {stat_list}")
         stats_list.extend(stat_list)
     return stats_list
 
@@ -131,7 +132,7 @@ def configure_for_extra_accuracy(config: PerfConfig, arguments: List[str]) -> Li
     so limit them to only a few minutes.
     """
 
-    new_run_max = 5
+    new_run_max = 10
     new_run_time="run_time=120"
     print("==================")
     print(f"Extra accuracy flag set. Overriding runmax to {new_run_max} and setting -o {new_run_time}")
@@ -157,21 +158,23 @@ def configure_for_extra_accuracy(config: PerfConfig, arguments: List[str]) -> Li
 
 def run_test_wrapper(config: PerfConfig, index: int = 0, arguments: List[str] = None):
     for test_run in range(config.run_max):
-        print("Starting test  {}".format(test_run))
+        print("Starting test  {}".format(test_run), flush=True)
         run_test(config=config, test_run=test_run, index=index, arguments=arguments)
-        print("Completed test {}".format(test_run))
+        print("Completed test {}".format(test_run), flush=True)
 
 
 def run_test(config: PerfConfig, test_run: int, index: int = 0, arguments: List[str] = None):
     test_home = create_test_home_path(home=config.home_dir, test_run=test_run, index=index)
     if config.verbose:
-        print("Home directory path created: {}".format(test_home))
+        print("Home directory path created: {}".format(test_home), flush=True)
 
     command_line = construct_command_line(
         exec_path=config.exec_path,
         arguments=arguments,
         test_arg=config.test_type.get_test_arg(config.test),
         home_arg=config.test_type.get_home_arg(test_home))
+
+    print(command_line)
 
     try:
         proc = subprocess.run(command_line, check=True,
@@ -188,6 +191,7 @@ def run_test(config: PerfConfig, test_run: int, index: int = 0, arguments: List[
 
 def process_results(config: PerfConfig, perf_stats: PerfStatCollection, index: int = 0) -> List[PerfStat]:
     for test_run in range(config.run_max):
+        print(f"process_results::tesT_run = {test_run}")
         test_home = create_test_home_path(home=config.home_dir, test_run=test_run, index=index)
         if config.verbose:
             print('Reading stats from {} directory.'.format(test_home))
@@ -339,6 +343,20 @@ def run_perf_tests(config: PerfConfig,
 
 
 def report_results(args: argparse.Namespace, config: PerfConfig, reported_stats: List[PerfStat]):
+    
+    if args.improved_accuracy:
+        new_run_max = 10
+        print("==================")
+        print(f"hack run_max to {new_run_max}")
+        print("==================")
+        args.run_max=new_run_max
+        config.run_max = 10
+    else:
+        print("DBG - ELSE")
+
+    print(f"DBG - {args}")
+    print(f"DBG - {config}")
+
     if args.brief_output:
         if args.verbose:
             print("Brief stats output (Evergreen compatible format):")
@@ -370,6 +388,9 @@ def main():
                                     arguments=arguments,
                                     operations=operations)
     report_results(args=args, config=config, reported_stats=reported_stats)
+
+    print(f"DBG main - {args}")
+    print(f"DBG main - {config}")
 
 if __name__ == '__main__':
     main()

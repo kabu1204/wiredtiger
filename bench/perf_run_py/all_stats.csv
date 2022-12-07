@@ -1,0 +1,3 @@
+Test Name, Metric Name, Value
+evict-btree.wtperf, Load time, 2.55, 3.66, 4.77
+evict-btree.wtperf, Read count, 89487991

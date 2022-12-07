@@ -49,7 +49,7 @@ functions:
       # Note that this path doesn't include ${execution}. This file is identical to the one 
       # displayed on the Files page of the task, but located in a separate folder so `fetch perf stats` 
       # can handle when a task fails and has to be restarted.
-      remote_file: "wiredtiger/${build_variant}/${revision}/perf-test-${test_name}-${build_id}/evergreen_out_${test_name}.wtperf.json"
+      remote_file: "wiredtiger/${build_variant}/${revision}/perf-test-${test_name}-${build_id}/atlas_out_${test_name}.wtperf.json"
       bucket: build_external
       local_file: "perf_stats/evergreen_out_${test_name}.wtperf.json"
   "fetch endian format artifacts" :
@@ -749,7 +749,7 @@ functions:
       params:
         aws_secret: ${aws_secret}
         aws_key: ${aws_key}
-        local_files_include_filter: wiredtiger/cmake_build/bench/wtperf/test_stats/evergreen_out_${perf-test-name}.json
+        local_files_include_filter: wiredtiger/cmake_build/bench/wtperf/test_stats/atlas_out_${perf-test-name}.json
         bucket: build_external
         permissions: public-read
         content_type: text/html
@@ -5638,13 +5638,11 @@ buildvariants:
     improved_accuracy: '--improved_accuracy'
   tasks:
     - name: compile
-    - name: perf-test-medium-btree
-    - name: perf-test-medium-btree-backup
-    - name: perf-test-mongodb-oplog
-    - name: perf-test-mongodb-small-oplog
-    - name: perf-test-mongodb-secondary-apply
-    - name: perf-test-evict-btree
-    - name: perf-test-evict-btree-1
-    - name: perf-test-log
+    - name: ".btree-perf"
+    - name: ".oplog-perf !perf-test-mongodb-large-oplog"
+    - name: perf-test-update-checkpoint-btree
+    - name: ".stress-perf !perf-test-many-table-stress !perf-test-many-table-stress-backup !perf-test-evict-fairness !perf-test-multi-btree-zipfian" 
+    - name: ".evict-perf"
+    - name: ".log-perf"
     - name: "aggregate-perf-stats"
     

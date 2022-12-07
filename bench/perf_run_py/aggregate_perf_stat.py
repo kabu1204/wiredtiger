@@ -41,14 +41,17 @@ def main():
     f.write("Test Name, Metric Name, Value\n")
 
     for perf_file in glob.glob('perf_stats/*.json'):
-        perf_data = json.load((open(perf_file)))[0]
-        test_name = perf_data['info']['test_name']
+        perf_data = json.load((open(perf_file)))
+        test_name = perf_data['Test Name']
 
         for metric in perf_data['metrics']:
             metric_name = metric['name']
-            metric_value = metric['value']
-
-            f.write(f"{test_name}, {metric_name}, {metric_value}\n")
+            metric_values = ""
+            if "values" in metric.keys():
+                metric_values = ", ".join([str(val) for val in metric['values']])
+            else:
+                metric_values = metric["value"]
+            f.write(f"{test_name}, {metric_name}, {metric_values}\n")
 
 if __name__ == '__main__':
     main()
