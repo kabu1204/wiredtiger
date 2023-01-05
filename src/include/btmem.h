@@ -498,6 +498,13 @@ struct __wt_page_modify {
 
 #define WT_PAGE_RS_RESTORED 0x1
     uint8_t restore_state; /* Created by restoring updates */
+
+/* Additional diagnostics fields to catch invalid updates. */
+#ifdef HAVE_DIAGNOSTIC
+#define WT_PAGE_MODIFY_EXCLUSIVE 0x1
+    uint8_t flags;
+    WT_SESSION_IMPL *reconciling_session;
+#endif
 };
 
 /*

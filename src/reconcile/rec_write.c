@@ -178,6 +178,12 @@ __reconcile_post_wrapup(
 
     btree = S2BT(session);
 
+#ifdef HAVE_DIAGNOSTIC
+    WT_ASSERT(session, page->modify->reconciling_session == session);
+    page->modify->reconciling_session = NULL;
+    page->modify->flags = 0;
+#endif
+
     /* Release the reconciliation lock. */
     *page_lockedp = false;
     WT_PAGE_UNLOCK(session, page);
@@ -572,6 +578,13 @@ __rec_init(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags, WT_SALVAGE_COO
     r->orig_btree_checkpoint_gen = btree->checkpoint_gen;
     r->orig_txn_checkpoint_gen = __wt_gen(session, WT_GEN_CHECKPOINT);
 
+#ifdef HAVE_DIAGNOSTIC
+    WT_ASSERT(session, page->modify->reconciling_session == NULL);
+    page->modify->reconciling_session = session;
+    if (LF_ISSET(WT_REC_EVICT))
+        F_SET(page->modify, WT_PAGE_MODIFY_EXCLUSIVE);
+#endif
+
     /*
      * Update the page state to indicate that all currently installed updates will be included in
      * this reconciliation if it would mark the page clean.
@@ -580,6 +593,7 @@ __rec_init(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags, WT_SALVAGE_COO
      * change.
      */
     page->modify->page_state = WT_PAGE_DIRTY_FIRST;
+
     WT_FULL_BARRIER();
 
     /*
@@ -2325,6 +2339,12 @@ __wt_bulk_wrapup(WT_SESSION_IMPL *session, WT_CURSOR_BULK *cbulk)
     __wt_page_modify_set(session, parent);
 
 err:
+#ifdef HAVE_DIAGNOSTIC
+    WT_ASSERT(session, r->ref->page->modify->reconciling_session == session);
+    r->ref->page->modify->reconciling_session = NULL;
+    r->ref->page->modify->flags = 0;
+#endif
+
     WT_TRET(__rec_cleanup(session, r));
     WT_TRET(__rec_destroy(session, &cbulk->reconcile));
 
