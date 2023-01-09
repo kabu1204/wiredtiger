@@ -683,15 +683,10 @@ static inline void
 __wt_page_only_modify_set(WT_SESSION_IMPL *session, WT_PAGE *page)
 {
     uint64_t last_running;
-#ifdef HAVE_DIAGNOSTIC
-    uint8_t dbg_flags;
-    WT_SESSION_IMPL *dbg_reconciling_session;
 
-    dbg_flags = page->modify->flags;
-    dbg_reconciling_session = page->modify->reconciling_session;
+#ifdef HAVE_DIAGNOSTIC
     WT_READ_BARRIER();
-    WT_UNUSED(dbg_reconciling_session);
-    WT_ASSERT(session, !FLD_ISSET(dbg_flags, WT_PAGE_MODIFY_EXCLUSIVE));
+    WT_ASSERT(session, !F_ISSET(page->modify, WT_PAGE_MODIFY_EXCLUSIVE));
 #endif
 
     WT_ASSERT(session, !F_ISSET(session->dhandle, WT_DHANDLE_DEAD));
@@ -785,11 +780,6 @@ __wt_tree_modify_set(WT_SESSION_IMPL *session)
 static inline void
 __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
 {
-#ifdef HAVE_DIAGNOSTIC
-    uint8_t dbg_flags;
-    WT_SESSION_IMPL *dbg_reconciling_session;
-#endif
-
     /*
      * The page must be held exclusive when this call is made, this call can only be used when the
      * page is owned by a single thread.
@@ -798,11 +788,8 @@ __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
      */
     if (__wt_page_is_modified(page)) {
 #ifdef HAVE_DIAGNOSTIC
-        dbg_flags = page->modify->flags;
-        dbg_reconciling_session = page->modify->reconciling_session;
         WT_READ_BARRIER();
-        WT_UNUSED(dbg_flags);
-        WT_ASSERT(session, dbg_reconciling_session == NULL);
+        WT_ASSERT(session, page->modify->reconciling_session == NULL);
 #endif
         /*
          * The only part where ordering matters is during reconciliation where updates on other

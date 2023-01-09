@@ -180,6 +180,8 @@ __reconcile_post_wrapup(
 
 #ifdef HAVE_DIAGNOSTIC
     WT_ASSERT(session, page->modify->reconciling_session == session);
+    page->modify->prev_reconciling_session = page->modify->reconciling_session;
+    page->modify->prev_flags = page->modify->flags;
     page->modify->reconciling_session = NULL;
     page->modify->flags = 0;
 #endif
@@ -579,7 +581,7 @@ __rec_init(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags, WT_SALVAGE_COO
     r->orig_txn_checkpoint_gen = __wt_gen(session, WT_GEN_CHECKPOINT);
 
 #ifdef HAVE_DIAGNOSTIC
-    WT_ASSERT(session, page->modify->reconciling_session == NULL);
+    WT_ASSERT(session, page->modify->reconciling_session == NULL && page->modify->flags == 0);
     page->modify->reconciling_session = session;
     if (LF_ISSET(WT_REC_EVICT))
         F_SET(page->modify, WT_PAGE_MODIFY_EXCLUSIVE);
@@ -2341,6 +2343,8 @@ __wt_bulk_wrapup(WT_SESSION_IMPL *session, WT_CURSOR_BULK *cbulk)
 err:
 #ifdef HAVE_DIAGNOSTIC
     WT_ASSERT(session, r->ref->page->modify->reconciling_session == session);
+    r->ref->page->modify->prev_reconciling_session = r->ref->page->modify->reconciling_session;
+    r->ref->page->modify->prev_flags = r->ref->page->modify->flags;
     r->ref->page->modify->reconciling_session = NULL;
     r->ref->page->modify->flags = 0;
     WT_WRITE_BARRIER();

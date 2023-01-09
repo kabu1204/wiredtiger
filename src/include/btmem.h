@@ -504,6 +504,8 @@ struct __wt_page_modify {
 #define WT_PAGE_MODIFY_EXCLUSIVE 0x1
     uint8_t flags;
     WT_SESSION_IMPL *reconciling_session;
+    uint8_t prev_flags;
+    WT_SESSION_IMPL *prev_reconciling_session;
 #endif
 };
 

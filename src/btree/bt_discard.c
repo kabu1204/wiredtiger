@@ -58,10 +58,6 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     WT_PAGE *page;
     WT_PAGE_HEADER *dsk;
     WT_PAGE_MODIFY *mod;
-#ifdef HAVE_DIAGNOSTIC
-    uint8_t dbg_flags;
-    WT_SESSION_IMPL *dbg_reconciling_session;
-#endif
 
     /*
      * Kill our caller's reference, do our best to catch races.
@@ -70,12 +66,9 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     *pagep = NULL;
 
 #ifdef HAVE_DIAGNOSTIC
+    WT_READ_BARRIER();
     if (page->modify != NULL) {
-        dbg_flags = page->modify->flags;
-        dbg_reconciling_session = page->modify->reconciling_session;
-        WT_READ_BARRIER();
-        WT_UNUSED(dbg_flags);
-        WT_ASSERT(session, dbg_reconciling_session == NULL);
+        WT_ASSERT(session, page->modify->reconciling_session == NULL);
     }
 #endif
 
@@ -284,21 +277,14 @@ void
 __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages)
 {
     WT_IKEY *ikey;
-#ifdef HAVE_DIAGNOSTIC
-    uint8_t dbg_flags;
-    WT_SESSION_IMPL *dbg_reconciling_session;
-#endif
 
     if (ref == NULL)
         return;
 
 #ifdef HAVE_DIAGNOSTIC
+    WT_READ_BARRIER();
     if (ref->page != NULL && ref->page->modify != NULL) {
-        dbg_flags = ref->page->modify->flags;
-        dbg_reconciling_session = ref->page->modify->reconciling_session;
-        WT_READ_BARRIER();
-        WT_UNUSED(dbg_flags);
-        WT_ASSERT(session, dbg_reconciling_session == NULL);
+        WT_ASSERT(session, ref->page->modify->reconciling_session == NULL);
     }
 #endif
 
