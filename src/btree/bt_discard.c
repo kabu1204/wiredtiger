@@ -72,8 +72,9 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
 #ifdef HAVE_DIAGNOSTIC
     if (page->modify != NULL) {
         dbg_flags = page->modify->flags;
-        WT_UNUSED(dbg_flags);
         dbg_reconciling_session = page->modify->reconciling_session;
+        WT_READ_BARRIER();
+        WT_UNUSED(dbg_flags);
         WT_ASSERT(session, dbg_reconciling_session == NULL);
     }
 #endif
@@ -294,8 +295,9 @@ __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pa
 #ifdef HAVE_DIAGNOSTIC
     if (ref->page != NULL && ref->page->modify != NULL) {
         dbg_flags = ref->page->modify->flags;
-        WT_UNUSED(dbg_flags);
         dbg_reconciling_session = ref->page->modify->reconciling_session;
+        WT_READ_BARRIER();
+        WT_UNUSED(dbg_flags);
         WT_ASSERT(session, dbg_reconciling_session == NULL);
     }
 #endif

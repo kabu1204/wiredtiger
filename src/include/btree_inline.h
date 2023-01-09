@@ -689,6 +689,7 @@ __wt_page_only_modify_set(WT_SESSION_IMPL *session, WT_PAGE *page)
 
     dbg_flags = page->modify->flags;
     dbg_reconciling_session = page->modify->reconciling_session;
+    WT_READ_BARRIER();
     WT_UNUSED(dbg_reconciling_session);
     WT_ASSERT(session, !FLD_ISSET(dbg_flags, WT_PAGE_MODIFY_EXCLUSIVE));
 #endif
@@ -798,8 +799,9 @@ __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
     if (__wt_page_is_modified(page)) {
 #ifdef HAVE_DIAGNOSTIC
         dbg_flags = page->modify->flags;
-        WT_UNUSED(dbg_flags);
         dbg_reconciling_session = page->modify->reconciling_session;
+        WT_READ_BARRIER();
+        WT_UNUSED(dbg_flags);
         WT_ASSERT(session, dbg_reconciling_session == NULL);
 #endif
         /*

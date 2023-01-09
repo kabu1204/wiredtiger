@@ -2343,6 +2343,7 @@ err:
     WT_ASSERT(session, r->ref->page->modify->reconciling_session == session);
     r->ref->page->modify->reconciling_session = NULL;
     r->ref->page->modify->flags = 0;
+    WT_WRITE_BARRIER();
 #endif
 
     WT_TRET(__rec_cleanup(session, r));
