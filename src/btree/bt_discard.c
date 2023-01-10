@@ -281,13 +281,6 @@ __wt_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pa
     if (ref == NULL)
         return;
 
-#ifdef HAVE_DIAGNOSTIC
-    WT_READ_BARRIER();
-    if (ref->page != NULL && ref->page->modify != NULL) {
-        WT_ASSERT(session, ref->page->modify->reconciling_session == NULL);
-    }
-#endif
-
     /*
      * We create WT_REFs in many places, assert a WT_REF has been configured as either an internal
      * page or a leaf page, to catch any we've missed.
@@ -337,10 +330,14 @@ static void
 __free_page_int(WT_SESSION_IMPL *session, WT_PAGE *page)
 {
     WT_PAGE_INDEX *pindex;
+    WT_REF *ref;
     uint32_t i;
 
-    for (pindex = WT_INTL_INDEX_GET_SAFE(page), i = 0; i < pindex->entries; ++i)
-        __wt_free_ref(session, pindex->index[i], page->type, false);
+    for (pindex = WT_INTL_INDEX_GET_SAFE(page), i = 0; i < pindex->entries; ++i) {
+        ref = pindex->index[i];
+        WT_ASSERT(session, __wt_hazard_check_assert(session, ref, false));
+        __wt_free_ref(session, ref, page->type, false);
+    }
 
     __wt_free(session, pindex);
 }

@@ -787,10 +787,7 @@ __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
      * Allow the call to be made on clean pages.
      */
     if (__wt_page_is_modified(page)) {
-#ifdef HAVE_DIAGNOSTIC
-        WT_READ_BARRIER();
         WT_ASSERT(session, page->modify->reconciling_session == NULL);
-#endif
         /*
          * The only part where ordering matters is during reconciliation where updates on other
          * threads are performing writes to the page state that need to be visible to the
