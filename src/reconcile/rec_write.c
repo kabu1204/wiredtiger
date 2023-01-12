@@ -175,15 +175,20 @@ __reconcile_post_wrapup(
   WT_SESSION_IMPL *session, WT_RECONCILE *r, WT_PAGE *page, uint32_t flags, bool *page_lockedp)
 {
     WT_BTREE *btree;
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+#endif
 
     btree = S2BT(session);
 
 #ifdef HAVE_DIAGNOSTIC
-    WT_ASSERT(session, page->modify->reconciling_session == session);
+    WT_ORDERED_READ(dbg_reconciling_session, page->modify->reconciling_session);
+    WT_ASSERT(session, dbg_reconciling_session == session);
     page->modify->prev_reconciling_session = page->modify->reconciling_session;
     page->modify->prev_flags = page->modify->flags;
     page->modify->reconciling_session = NULL;
     page->modify->flags = 0;
+    /* Don't need a write barrier because the page unlock will provide it. */
 #endif
 
     /* Release the reconciliation lock. */
@@ -543,6 +548,10 @@ __rec_init(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags, WT_SALVAGE_COO
     WT_RECONCILE *r;
     WT_TXN_GLOBAL *txn_global;
     uint64_t ckpt_txn;
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+    uint8_t dbg_flags;
+#endif
 
     btree = S2BT(session);
     page = ref->page;
@@ -581,7 +590,9 @@ __rec_init(WT_SESSION_IMPL *session, WT_REF *ref, uint32_t flags, WT_SALVAGE_COO
     r->orig_txn_checkpoint_gen = __wt_gen(session, WT_GEN_CHECKPOINT);
 
 #ifdef HAVE_DIAGNOSTIC
-    WT_ASSERT(session, page->modify->reconciling_session == NULL && page->modify->flags == 0);
+    dbg_flags = page->modify->flags;
+    WT_ORDERED_READ(dbg_reconciling_session, page->modify->reconciling_session);
+    WT_ASSERT(session, dbg_reconciling_session == NULL && dbg_flags == 0);
     page->modify->reconciling_session = session;
     if (LF_ISSET(WT_REC_EVICT))
         F_SET(page->modify, WT_PAGE_MODIFY_EXCLUSIVE);
@@ -2309,6 +2320,9 @@ __wt_bulk_wrapup(WT_SESSION_IMPL *session, WT_CURSOR_BULK *cbulk)
     WT_DECL_RET;
     WT_PAGE *parent;
     WT_RECONCILE *r;
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+#endif
 
     btree = S2BT(session);
     if ((r = cbulk->reconcile) == NULL)
@@ -2342,7 +2356,8 @@ __wt_bulk_wrapup(WT_SESSION_IMPL *session, WT_CURSOR_BULK *cbulk)
 
 err:
 #ifdef HAVE_DIAGNOSTIC
-    WT_ASSERT(session, r->ref->page->modify->reconciling_session == session);
+    WT_ORDERED_READ(dbg_reconciling_session, r->ref->page->modify->reconciling_session);
+    WT_ASSERT(session, dbg_reconciling_session == session);
     r->ref->page->modify->prev_reconciling_session = r->ref->page->modify->reconciling_session;
     r->ref->page->modify->prev_flags = r->ref->page->modify->flags;
     r->ref->page->modify->reconciling_session = NULL;

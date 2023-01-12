@@ -58,6 +58,9 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     WT_PAGE *page;
     WT_PAGE_HEADER *dsk;
     WT_PAGE_MODIFY *mod;
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+#endif
 
     /*
      * Kill our caller's reference, do our best to catch races.
@@ -66,10 +69,9 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     *pagep = NULL;
 
 #ifdef HAVE_DIAGNOSTIC
+    dbg_reconciling_session = (page->modify == NULL) ? NULL : page->modify->reconciling_session;
     WT_READ_BARRIER();
-    if (page->modify != NULL) {
-        WT_ASSERT(session, page->modify->reconciling_session == NULL);
-    }
+    WT_ASSERT(session, dbg_reconciling_session == NULL);
 #endif
 
     /*
@@ -351,9 +353,18 @@ __wt_free_ref_index(WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pind
 {
     WT_REF *ref;
     uint32_t i;
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+#endif
 
     if (pindex == NULL)
         return;
+
+#ifdef HAVE_DIAGNOSTIC
+    dbg_reconciling_session = (page->modify == NULL) ? NULL : page->modify->reconciling_session;
+    WT_READ_BARRIER();
+    WT_ASSERT(session, dbg_reconciling_session == NULL);
+#endif
 
     for (i = 0; i < pindex->entries; ++i) {
         ref = pindex->index[i];

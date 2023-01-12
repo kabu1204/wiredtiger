@@ -683,10 +683,11 @@ static inline void
 __wt_page_only_modify_set(WT_SESSION_IMPL *session, WT_PAGE *page)
 {
     uint64_t last_running;
-
 #ifdef HAVE_DIAGNOSTIC
-    WT_READ_BARRIER();
-    WT_ASSERT(session, !F_ISSET(page->modify, WT_PAGE_MODIFY_EXCLUSIVE));
+    uint8_t dbg_flags;
+
+    WT_ORDERED_READ(dbg_flags, page->modify->flags);
+    WT_ASSERT(session, !FLD_ISSET(dbg_flags, WT_PAGE_MODIFY_EXCLUSIVE));
 #endif
 
     WT_ASSERT(session, !F_ISSET(session->dhandle, WT_DHANDLE_DEAD));
@@ -780,6 +781,10 @@ __wt_tree_modify_set(WT_SESSION_IMPL *session)
 static inline void
 __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
 {
+#ifdef HAVE_DIAGNOSTIC
+    WT_SESSION_IMPL *dbg_reconciling_session;
+#endif
+
     /*
      * The page must be held exclusive when this call is made, this call can only be used when the
      * page is owned by a single thread.
@@ -787,7 +792,10 @@ __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
      * Allow the call to be made on clean pages.
      */
     if (__wt_page_is_modified(page)) {
-        WT_ASSERT(session, page->modify->reconciling_session == NULL);
+#ifdef HAVE_DIAGNOSTIC
+        WT_ORDERED_READ(dbg_reconciling_session, page->modify->reconciling_session);
+        WT_ASSERT(session, dbg_reconciling_session == NULL);
+#endif
         /*
          * The only part where ordering matters is during reconciliation where updates on other
          * threads are performing writes to the page state that need to be visible to the
@@ -797,6 +805,7 @@ __wt_page_modify_clear(WT_SESSION_IMPL *session, WT_PAGE *page)
          * separate thread, there's no write barrier needed here.
          */
         page->modify->page_state = WT_PAGE_CLEAN;
+        WT_WRITE_BARRIER();
         __wt_cache_dirty_decr(session, page);
     }
 }
