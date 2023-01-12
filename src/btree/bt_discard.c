@@ -69,9 +69,10 @@ __wt_page_out(WT_SESSION_IMPL *session, WT_PAGE **pagep)
     *pagep = NULL;
 
 #ifdef HAVE_DIAGNOSTIC
-    dbg_reconciling_session = (page->modify == NULL) ? NULL : page->modify->reconciling_session;
-    WT_READ_BARRIER();
-    WT_ASSERT(session, dbg_reconciling_session == NULL);
+    if (page->modify != NULL) {
+        WT_ORDERED_READ(dbg_reconciling_session, page->modify->reconciling_session);
+        WT_ASSERT(session, dbg_reconciling_session == NULL);
+    }
 #endif
 
     /*
@@ -361,9 +362,10 @@ __wt_free_ref_index(WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pind
         return;
 
 #ifdef HAVE_DIAGNOSTIC
-    dbg_reconciling_session = (page->modify == NULL) ? NULL : page->modify->reconciling_session;
-    WT_READ_BARRIER();
-    WT_ASSERT(session, dbg_reconciling_session == NULL);
+    if (page->modify != NULL) {
+        WT_ORDERED_READ(dbg_reconciling_session, page->modify->reconciling_session);
+        WT_ASSERT(session, dbg_reconciling_session == NULL);
+    }
 #endif
 
     for (i = 0; i < pindex->entries; ++i) {
