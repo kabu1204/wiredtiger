@@ -234,20 +234,16 @@ void
 operations(u_int ops_seconds, bool lastrun)
 {
     SAP sap;
-    struct timespec current_time, start_time;
     TINFO *tinfo, total;
     WT_CONNECTION *conn;
     WT_SESSION *session;
     wt_thread_t alter_tid, backup_tid, checkpoint_tid, compact_tid, hs_tid, import_tid, random_tid;
     wt_thread_t timestamp_tid;
-    int64_t thread_ops;
-    uint32_t i, max_over_secs, running_secs;
-    bool running, timer_expired;
+    int64_t fourths, quit_fourths, thread_ops;
+    uint32_t i;
+    bool running;
 
     conn = g.wts_conn;
-
-    timer_expired = false;
-    max_over_secs = 15 * WT_MINUTE;
 
     /* Make the modify pad character printable to simplify debugging and logging. */
     __wt_process.modify_pad_byte = FORMAT_PAD_BYTE;
@@ -279,6 +275,12 @@ operations(u_int ops_seconds, bool lastrun)
         if (GV(RUNS_OPS) < GV(RUNS_THREADS))
             GV(RUNS_OPS) = GV(RUNS_THREADS);
         thread_ops = GV(RUNS_OPS) / GV(RUNS_THREADS);
+    }
+    if (ops_seconds == 0)
+        fourths = quit_fourths = -1;
+    else {
+        fourths = ops_seconds * 4;
+        quit_fourths = fourths + 15 * 4 * 60;
     }
 
     /* Get a session. */
@@ -313,8 +315,6 @@ operations(u_int ops_seconds, bool lastrun)
     if (g.checkpoint_config == CHECKPOINT_ON)
         testutil_check(__wt_thread_create(NULL, &checkpoint_tid, checkpoint, NULL));
 
-    __wt_epoch(NULL, &start_time);
-
     /* Spin on the threads, calculating the totals. */
     for (;;) {
         /* Clear out the totals each pass. */
@@ -348,7 +348,7 @@ operations(u_int ops_seconds, bool lastrun)
              * If the timer has expired or this thread has completed its operations, notify the
              * thread it should quit.
              */
-            if (timer_expired || (thread_ops != -1 && tinfo->ops >= (uint64_t)thread_ops)) {
+            if (fourths == 0 || (thread_ops != -1 && tinfo->ops >= (uint64_t)thread_ops)) {
                 /*
                  * On the last execution, optionally drop core for recovery testing.
                  */
@@ -360,11 +360,10 @@ operations(u_int ops_seconds, bool lastrun)
         track_ops(&total);
         if (!running)
             break;
-         __wt_epoch(session, &current_time);
-        running_secs = WT_TIMEDIFF_SEC(current_time, start_time);
-	timer_expired = ops_seconds > 0 && running_secs >= ops_seconds;
         __wt_sleep(0, 250000); /* 1/4th of a second */
-        if (running_secs >= max_over_secs) {
+        if (fourths != -1)
+            --fourths;
+        if (quit_fourths != -1 && --quit_fourths == 0) {
             fprintf(stderr, "%s\n", "format run more than 15 minutes past the maximum time");
             fprintf(stderr, "%s\n",
               "format run dumping cache and transaction state, then aborting the process");
