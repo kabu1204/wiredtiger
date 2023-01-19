@@ -360,9 +360,11 @@ operations(u_int ops_seconds, bool lastrun)
         track_ops(&total);
         if (!running)
             break;
+        LAPSED_TS_MSG("Ops checking thread sleeping");
         __wt_sleep(0, 250000); /* 1/4th of a second */
         if (fourths != -1)
             --fourths;
+        LAPSED_TS_MSG_D64("Ops checking thread running, remaining ", fourths);
         if (quit_fourths != -1 && --quit_fourths == 0) {
             fprintf(stderr, "%s\n", "format run more than 15 minutes past the maximum time");
             fprintf(stderr, "%s\n",

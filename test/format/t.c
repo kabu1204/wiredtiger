@@ -32,6 +32,7 @@ GLOBAL g;
 
 TABLE *tables[V_MAX_TABLES_CONFIG + 1]; /* Table array */
 u_int ntables;
+struct timespec test_start_time;
 
 static void format_die(void);
 static void usage(void) WT_GCC_FUNC_DECL_ATTRIBUTE((noreturn));
@@ -192,6 +193,7 @@ main(int argc, char *argv[])
 
     custom_die = format_die; /* Local death handler. */
 
+    __wt_epoch(NULL, &test_start_time);
     config = NULL;
 
     (void)testutil_set_progname(argv);
@@ -310,7 +312,9 @@ main(int argc, char *argv[])
         GV(QUIET) = 1;
 
     /* Configure the run. */
+    LAPSED_TS_MSG("Config generation started");
     config_run();
+    LAPSED_TS_MSG("Config generated completed");
     g.configured = true;
 
     /* If checking a CONFIG file syntax, we're done. */
@@ -344,6 +348,7 @@ main(int argc, char *argv[])
         timestamp_init();
     }
 
+    LAPSED_TS_MSG("Bulk init started");
     locks_init(g.wts_conn);
 
     /*
@@ -359,6 +364,8 @@ main(int argc, char *argv[])
         goto skip_operations;
     TIMED_MAJOR_OP(tables_apply(wts_read_scan, g.wts_conn));
 
+    LAPSED_TS_MSG("Bulk init completed");
+
     /* Optionally start checkpoints. */
     wts_checkpoints();
 
@@ -372,8 +379,11 @@ main(int argc, char *argv[])
      * time and then don't check for timer expiration once the main operations loop completes.
      */
     ops_seconds = GV(RUNS_TIMER) == 0 ? 0 : ((GV(RUNS_TIMER) * 60) - 15) / FORMAT_OPERATION_REPS;
-    for (reps = 1; reps <= FORMAT_OPERATION_REPS; ++reps)
+    for (reps = 1; reps <= FORMAT_OPERATION_REPS; ++reps) {
+        LAPSED_TS_MSG_D64("Operations starting iteration ", (int64_t)reps);
         operations(ops_seconds, reps == FORMAT_OPERATION_REPS);
+        LAPSED_TS_MSG_D64("Operations completed iteration ", (int64_t)reps);
+    }
 
     /* Copy out the run's statistics. */
     TIMED_MAJOR_OP(wts_stats());
