@@ -183,6 +183,7 @@ extern struct timespec test_start_time;
         __wt_epoch(NULL, &test_time_now);                                                      \
         printf(                                                                                \
           "Lapsed %" PRIu64 " ms: %s\n", WT_TIMEDIFF_MS(test_time_now, test_start_time), msg); \
+        fflush(stdout);                                                                        \
     }
 #define LAPSED_TS_MSG_D64(msg, v)                                  \
     {                                                              \
@@ -190,6 +191,7 @@ extern struct timespec test_start_time;
         __wt_epoch(NULL, &test_time_now);                          \
         printf("Lapsed %" PRIu64 " ms: %s%" PRId64 "\n",           \
           WT_TIMEDIFF_MS(test_time_now, test_start_time), msg, v); \
+        fflush(stdout);                                            \
     }
 
 typedef struct {
