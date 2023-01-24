@@ -398,7 +398,9 @@ skip_operations:
      * Verify the objects. Verify closes the underlying handle and discards the statistics, read
      * them first.
      */
+    LAPSED_TS_MSG("Verify completed");
     TIMED_MAJOR_OP(wts_verify(g.wts_conn, true));
+    LAPSED_TS_MSG("Verify completed");
 
     track("shutting down", 0ULL);
     LAPSED_TS_MSG("Closing started");
@@ -406,8 +408,11 @@ skip_operations:
     LAPSED_TS_MSG("Closing completed");
 
     /* Salvage testing. */
-    if (!verify_only)
+    if (!verify_only) {
+        LAPSED_TS_MSG("Salvage started");
         TIMED_MAJOR_OP(tables_apply(wts_salvage, NULL));
+        LAPSED_TS_MSG("Salvage completed");
+    }
 
     trace_teardown();
 
