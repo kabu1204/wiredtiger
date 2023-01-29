@@ -481,7 +481,7 @@ main(int argc, char *argv[])
     WT_INSERT_HEAD *ins_head;
     WT_RAND_STATE rnd;
     WT_SESSION *session;
-    char base[MAX_KEYLEN + 1], command[1024], home[1024], prefix;
+    char base[MAX_KEYLEN + 1], command[1024], home[1024], prefix[10];
     const char *working_dir;
     bool pareto_dist;
     test_type config;
@@ -540,6 +540,10 @@ main(int argc, char *argv[])
     /* By default, test with uniform random keys */
     if (config == KEYS_NOT_CONFIG)
         config = KEYS_UNIFORM;
+
+    /* Adjacent keys test requires an even number of threads. Round up */
+    if (config == KEYS_ADJACENT && (insert_threads %2) == 1)
+        insert_threads++;
 
     if (seed == 0) {
         __wt_random_init_seed(NULL, &rnd);
@@ -627,19 +631,19 @@ main(int argc, char *argv[])
         base[i] = '\0';
 
         for (i = 0; i < insert_threads; i += 2) {
-            prefix = 'a' + (char)i;
+            sprintf(prefix, "%03d", i/2);
 
             /* Increasing keys. */
             for (j = 0, idx = i * thread_keys; j < thread_keys; j++, idx++) {
                 key_list[idx] = dmalloc(thread_keys + 20);
-                sprintf(key_list[idx], "%c.%s.%06d", prefix, base, j);
+                sprintf(key_list[idx], "%s.%s.%06d", prefix, base, j);
             }
 
             /* Decreasing keys. */
             for (j = 0, idx = (i + 1) * thread_keys; j < thread_keys; j++, idx++) {
                 key_list[idx] = dmalloc(thread_keys + 20);
                 base[j] = 'B';
-                sprintf(key_list[idx], "%c.%s.000000", prefix, base);
+                sprintf(key_list[idx], "%s.%s.000000", prefix, base);
                 base[j] = 'A';
             }
         }
