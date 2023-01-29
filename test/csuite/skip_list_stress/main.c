@@ -48,7 +48,9 @@ static uint32_t key_count = 100000;
 /* Test parameters. Eventually these should become command line args */
 
 #define INSERT_THREADS 8 /* Default number of threads doing inserts */
-#define VERIFY_THREADS 2 /* Default number of threads doing verify */
+#define VERIFY_THREADS 1 /* Default number of threads doing verify */
+
+#define MAX_KEYLEN 1000
 
 typedef enum { KEYS_NOT_CONFIG, KEYS_ADJACENT, KEYS_PARETO, KEYS_UNIFORM } test_type;
 
@@ -479,7 +481,7 @@ main(int argc, char *argv[])
     WT_INSERT_HEAD *ins_head;
     WT_RAND_STATE rnd;
     WT_SESSION *session;
-    char command[1024], home[1024];
+    char base[MAX_KEYLEN + 1], command[1024], home[1024], prefix;
     const char *working_dir;
     bool pareto_dist;
     test_type config;
@@ -535,6 +537,10 @@ main(int argc, char *argv[])
     if (argc != 0)
         usage();
 
+    /* By default, test with uniform random keys */
+    if (config == KEYS_NOT_CONFIG)
+        config = KEYS_UNIFORM;
+
     if (seed == 0) {
         __wt_random_init_seed(NULL, &rnd);
         seed = rnd.v;
@@ -543,10 +549,6 @@ main(int argc, char *argv[])
 
     nthreads = insert_threads + VERIFY_THREADS;
     thread_keys = key_count / insert_threads;
-
-    /* By default, test with uniform random keys */
-    if (config == KEYS_NOT_CONFIG)
-        config = KEYS_UNIFORM;
 
     testutil_work_dir_from_path(home, sizeof(home), working_dir);
     testutil_check(__wt_snprintf(command, sizeof(command), "rm -rf %s; mkdir %s", home, home));
@@ -571,40 +573,95 @@ main(int argc, char *argv[])
 
     case KEYS_ADJACENT:
         /*
-         * Pairs of threads operate in the same region of key space, one inserting keys from low to
-         * high while the other inserts keys from high to low. The goal is to generate pairs of
-         * inserts that are adjacent in the skip list. We should get this behavior as each thread's
-         * current insert should be adjacent to its partner thread's current insert, as we haven't
-         * yet added any keys between those two.
+         *      -- Don't auto-format
+         *
+         * The goal here is to set things up so we repeatedly generate concurrent operations that
+         * match the pattern required to trigger the bug:
+         *
+         *     We have three keys, K1, K2, K3 that are inserted in the same skip list such that:
+         *         - K3 is already in the skip list when K1 and K2 are inserted concurrently
+         *         - K1 and K2 share a common prefix, P, and have separate suffixes, S1 and S2,
+         *           such that:
+         *              - K1 = <P, S1>
+         *              - K2 = <P, S2>
+         *              - S1 < S2
+         *         - K3 = <P3, S3> where
+         *              - P3 is the prefix of K3 of the same length as P
+         *              - P3 > P
+         *              - S3 < S1
+         *
+         * We do this by having pairs of threads operating in the same region of key space.
+         * Thread 1 inserts keys from low to high while Thread 2 inserts keys from high to low.
+         * The result is that they grow towards each other, filling in an empty region of the key
+         * space. Thus at any time, the keys the two threads are inserting should have no
+         * intervening keys. These are K1 and K2 from the example. We use a pattern for these keys
+         * so that the previous key inserted by Thread 2 can act as K3.
+         *
+         * Here's what it looks like:
+         *
+         * \/ Thread 1 inserting increasing keys \/
+         *     AAAAA.100
+         *     AAAAA.101
+         *     AAAAA.102
+         *
+         *     AAABA.000
+         *     AABAA.000
+         *     ABAAA.000
+         * /\ Thread 2 inserting decreasing keys /\
+         *
+         * To ensure thread pairs work in a different area of the key space, each pair of threads
+         * will have a prefix it prepended to this pattern of keys.
          */
 
-        /* Even numbered threads get increasing keys */
-        for (i = 0; i < insert_threads; i += 2)
+        /*
+         * The key length must roughly match the number of keys per threads. To avoid excessively
+         * long keys -- and spending all our time doing key comparisons -- enforce a reasonable
+         * maximum.
+         */
+
+        if (thread_keys > MAX_KEYLEN)
+            thread_keys = MAX_KEYLEN;
+
+        for (i = 0; i < thread_keys; i++)
+            base[i] = 'A';
+        base[i] = '\0';
+
+        for (i = 0; i < insert_threads; i += 2) {
+            prefix = 'a' + (char)i;
+
+            /* Increasing keys. */
             for (j = 0, idx = i * thread_keys; j < thread_keys; j++, idx++) {
-                key_list[idx] = dmalloc(20);
-                sprintf(key_list[idx], "Key #%c.%06d", 'A' + i, j);
+                key_list[idx] = dmalloc(thread_keys + 20);
+                sprintf(key_list[idx], "%c.%s.%06d", prefix, base, j);
             }
 
-        /* Odd numbered threads get decreasing keys */
-        for (i = 1; i < insert_threads; i += 2)
-            for (j = 0, idx = i * thread_keys; j < thread_keys; j++, idx++) {
-                key_list[idx] = dmalloc(20);
-                sprintf(key_list[idx], "Key %c.%06d", 'A' + i - 1, (2 * thread_keys - j));
+            /* Decreasing keys. */
+            for (j = 0, idx = (i + 1) * thread_keys; j < thread_keys; j++, idx++) {
+                key_list[idx] = dmalloc(thread_keys + 20);
+                base[j] = 'B';
+                sprintf(key_list[idx], "%c.%s.000000", prefix, base);
+                base[j] = 'A';
             }
+        }
+
         break;
 
     case KEYS_PARETO:
-        /* FALLTHROUGH */
-    case KEYS_UNIFORM:
         key_list = dmalloc(key_count * sizeof(char *));
         for (i = 0; i < key_count; i++) {
             key_list[i] = dmalloc(20);
-            r_val = __wt_random(&rnd);
-            if (config == KEYS_PARETO) {
-                r_val = pareto(r_val);
-                r_val = r_val % key_count;
-            }
+            r_val = pareto(__wt_random(&rnd));
+            r_val = r_val % key_count;
             sprintf(key_list[i], "%u.%d", r_val, i);
+        }
+        break;
+
+    case KEYS_UNIFORM:
+        key_list = dmalloc(key_count * sizeof(char *));
+        for (i = 0; i < key_count; i++) {
+            key_list[i] = dmalloc(80);
+            r_val = __wt_random(&rnd);
+            sprintf(key_list[i], "Do we need a longish prefix to trigger this %08d", i);
         }
         break;
     }
