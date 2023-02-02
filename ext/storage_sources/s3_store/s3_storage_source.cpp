@@ -82,9 +82,11 @@ struct S3FileSystem {
     // Must come first - this is the interface for the file system we are implementing.
     WT_FILE_SYSTEM fileSystem;
     S3Storage *storage;
-    // The S3_FILE_SYSTEM is built on top of the WT_FILE_SYSTEM. We require an instance of the
-    // WT_FILE_SYSTEM in order to access the native WiredTiger filesystem functionality, such as the
-    // native WT file handle open.
+    /*
+     * The S3_FILE_SYSTEM is built on top of the WT_FILE_SYSTEM. We require an instance of the
+     * WT_FILE_SYSTEM in order to access the native WiredTiger filesystem functionality, such as the
+     * native WT file handle open.
+     */
     WT_FILE_SYSTEM *wtFileSystem;
     S3Connection *connection;
     std::string cacheDir; // Directory for cached objects
@@ -95,9 +97,11 @@ struct S3FileHandle {
     WT_FILE_HANDLE iface; // Must come first
     S3Storage *storage;   // Enclosing storage source
 
-    // Similarly, The S3FileHandle is built on top of the WT_FILE_HANDLE. We require an instance of
-    // the WT_FILE_HANDLE in order to access the native WiredTiger filehandle functionality, such as
-    // the native WT file handle read and close.
+    /*
+     * Similarly, The S3FileHandle is built on top of the WT_FILE_HANDLE. We require an instance of
+     * the WT_FILE_HANDLE in order to access the native WiredTiger filehandle functionality, such as
+     * the native WT file handle read and close.
+     */
 
     WT_FILE_HANDLE *wtFileHandle;
 };
@@ -527,9 +531,11 @@ S3CustomizeFileSystem(WT_STORAGE_SOURCE *storageSource, WT_SESSION *session, con
     awsConfig.region = region;
     awsConfig.throughputTargetGbps = throughputTargetGbps;
 
-    // Get the directory to setup the cache, or use the default one. The default cache directory is
-    // named "cache-<name>", where name is the last component of the bucket name's path. We'll
-    // create it if it doesn't exist.
+    /*
+     * Get the directory to setup the cache, or use the default one. The default cache directory is
+     * named "cache-<name>", where name is the last component of the bucket name's path. We'll
+     * create it if it doesn't exist.
+     */
     WT_CONFIG_ITEM cacheDirConf;
     std::string cacheDir;
     std::string cacheStr;
@@ -736,17 +742,21 @@ S3Terminate(WT_STORAGE_SOURCE *storageSource, WT_SESSION *session)
     if (--s3->referenceCount != 0)
         return (0);
 
-    // It is currently unclear at the moment what the multi-threading will look like in the
-    // extension. The current implementation is NOT thread-safe, and needs to be addressed in the
-    // future, as multiple threads could call terminate leading to a race condition.
+    /*
+     * It is currently unclear at the moment what the multi-threading will look like in the
+     * extension. The current implementation is NOT thread-safe, and needs to be addressed in the
+     * future, as multiple threads could call terminate leading to a race condition.
+     */
     while (!s3->fhList.empty()) {
         S3FileHandle *fs = s3->fhList.front();
         S3FileClose((WT_FILE_HANDLE *)fs, session);
     }
 
-    // Terminate any active filesystems. There are no references to the storage source, so it is
-    // safe to walk the active filesystem list without a lock. The removal from the list happens
-    // under a lock. Also, removal happens from the front and addition at the end, so we are safe.
+    /*
+     * Terminate any active filesystems. There are no references to the storage source, so it is
+     * safe to walk the active filesystem list without a lock. The removal from the list happens
+     * under a lock. Also, removal happens from the front and addition at the end, so we are safe.
+     */
     while (!s3->fsList.empty()) {
         S3FileSystem *fs = s3->fsList.front();
         S3FileSystemTerminate(&fs->fileSystem, session);
@@ -770,14 +780,13 @@ S3Flush(WT_STORAGE_SOURCE *storageSource, WT_SESSION *session, WT_FILE_SYSTEM *f
     S3Storage *s3 = (S3Storage *)storageSource;
     S3FileSystem *fs = (S3FileSystem *)fileSystem;
     WT_FILE_SYSTEM *wtFileSystem = fs->wtFileSystem;
-    int ret;
-    bool nativeExist;
     FS2S3(fileSystem)->statistics.putObjectCount++;
 
     // Confirm that the file exists on the native filesystem.
     std::string srcPath = S3Path(fs->homeDir, source);
-
-    if ((ret = wtFileSystem->fs_exist(wtFileSystem, session, srcPath.c_str(), &nativeExist)) != 0) {
+    bool nativeExist = false;
+    int ret = wtFileSystem->fs_exist(wtFileSystem, session, srcPath.c_str(), &nativeExist);
+    if (ret != 0) {
         s3->log->LogErrorMessage("S3Flush: Failed to check for the existence of " +
           std::string(source) + " on the native filesystem.");
         return (ret);
@@ -790,7 +799,8 @@ S3Flush(WT_STORAGE_SOURCE *storageSource, WT_SESSION *session, WT_FILE_SYSTEM *f
     s3->log->LogDebugMessage(
       "S3Flush: Uploading object: " + std::string(object) + "into bucket using PutObject");
     // Upload the object into the bucket.
-    if (ret = (fs->connection->PutObject(object, srcPath)) != 0)
+    ret = (fs->connection->PutObject(object, srcPath));
+    if (ret != 0)
         s3->log->LogErrorMessage("S3Flush: PutObject request to S3 failed.");
     else
         s3->log->LogDebugMessage("S3Flush: Uploaded object to S3.");
@@ -869,7 +879,7 @@ wiredtiger_extension_init(WT_CONNECTION *connection, WT_CONFIG_ARG *config)
     s3->verbose = WT_VERBOSE_ERROR;
     s3->log = Aws::MakeShared<S3LogSystem>("storage", s3->wtApi, s3->verbose);
 
-    if (ret == 0 && v.val >= WT_VERBOSE_ERROR && v.val <= WT_VERBOSE_DEBUG) {
+    if (ret == 0 && v.val >= WT_VERBOSE_ERROR && v.val <= WT_VERBOSE_DEBUG_5) {
         s3->verbose = v.val;
         s3->log->SetWtVerbosityLevel(s3->verbose);
     } else if (ret != WT_NOTFOUND) {
@@ -884,7 +894,8 @@ wiredtiger_extension_init(WT_CONNECTION *connection, WT_CONFIG_ARG *config)
 
     // Initialize the AWS SDK and logging.
     AwsManager::Init();
-    Aws::Utils::Logging::InitializeAWSLogging(s3->log);
+    std::shared_ptr<Aws::Utils::Logging::LogSystemInterface> s3Log = s3->log;
+    Aws::Utils::Logging::InitializeAWSLogging(s3Log);
 
     // Allocate a S3 storage structure, with a WT_STORAGE structure as the first field, allowing us
     // to treat references to either type of structure as a reference to the other type.

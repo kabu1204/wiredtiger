@@ -43,7 +43,7 @@ static void verify_import(WT_SESSION *);
  * The number of entries in the import table, primary use for validating contents after import.
  * There is no benefit to varying the number of entries in the import table.
  */
-#define IMPORT_ENTRIES 1000
+#define IMPORT_ENTRIES WT_THOUSAND
 #define IMPORT_TABLE_CONFIG "key_format=i,value_format=i"
 #define IMPORT_URI "table:import"
 #define IMPORT_URI_FILE "file:import.wt"
@@ -56,7 +56,6 @@ WT_THREAD_RET
 import(void *arg)
 {
     WT_CONNECTION *conn, *import_conn;
-    WT_DECL_RET;
     WT_SESSION *import_session, *session;
     size_t cmd_len;
     uint32_t import_value;
@@ -110,19 +109,12 @@ import(void *arg)
         else
             testutil_check(__wt_snprintf(buf, sizeof(buf),
               "%s,import=(enabled,repair=false,file_metadata=(%s))", table_config, file_config));
-        if ((ret = session->create(session, IMPORT_URI, buf)) != 0)
-            testutil_die(ret, "session.import", ret);
+        testutil_check(session->create(session, IMPORT_URI, buf));
 
         verify_import(session);
 
-        /* Perform checkpoint, to make sure we perform drop */
-        session->checkpoint(session, NULL);
-
         /* Drop import table, so we can import the table again */
-        while ((ret = session->drop(session, IMPORT_URI, NULL)) == EBUSY) {
-            __wt_yield();
-        }
-        testutil_check(ret);
+        testutil_drop(session, IMPORT_URI, NULL);
 
         period = mmrand(NULL, 1, 10);
         while (period > 0 && !g.workers_finished) {
@@ -130,7 +122,7 @@ import(void *arg)
             __wt_sleep(1, 0);
         }
     }
-    wts_close(&import_conn, &import_session);
+    wts_close(&import_conn);
     testutil_check(session->close(session, NULL));
     return (WT_THREAD_RET_VALUE);
 }

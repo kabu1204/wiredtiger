@@ -52,11 +52,11 @@ set_stable(void)
 }
 
 /*
- * start_checkpoints --
- *     Responsible for creating the checkpoint thread.
+ * start_threads --
+ *     Responsible for creating the service threads.
  */
 void
-start_checkpoints(void)
+start_threads(void)
 {
     set_stable();
     testutil_check(__wt_thread_create(NULL, &g.checkpoint_thread, checkpointer, NULL));
@@ -67,14 +67,20 @@ start_checkpoints(void)
 }
 
 /*
- * end_checkpoints --
- *     Responsible for cleanly shutting down the checkpoint thread.
+ * end_threads --
+ *     Responsible for cleanly shutting down the service threads.
  */
 void
-end_checkpoints(void)
+end_threads(void)
 {
+    /* Shutdown checkpoint after flush thread completes because flush depends on checkpoint. */
     testutil_check(__wt_thread_join(NULL, &g.checkpoint_thread));
+
     if (g.use_timestamps) {
+        /*
+         * The clock lock is also used by the checkpoint thread. Now that it has exited it is safe
+         * to destroy that lock.
+         */
         testutil_check(__wt_thread_join(NULL, &g.clock_thread));
         __wt_rwlock_destroy(NULL, &g.clock_lock);
     }
@@ -98,7 +104,7 @@ clock_thread(void *arg)
     testutil_check(g.conn->open_session(g.conn, NULL, NULL, &wt_session));
     session = (WT_SESSION_IMPL *)wt_session;
 
-    while (g.running) {
+    while (g.opts.running) {
         __wt_writelock(session, &g.clock_lock);
         if (g.prepare)
             /*
@@ -121,7 +127,7 @@ clock_thread(void *arg)
          * Random value between 5000 and 10000.
          */
         delay = __wt_random(&rnd) % 5001;
-        __wt_sleep(0, delay + 5000);
+        __wt_sleep(0, delay + 5 * WT_THOUSAND);
     }
 
     testutil_check(wt_session->close(wt_session, NULL));
@@ -149,6 +155,25 @@ checkpointer(void *arg)
 }
 
 /*
+ * set_flush_tier_delay --
+ *     Set up a random delay for the next flush_tier.
+ */
+void
+set_flush_tier_delay(WT_RAND_STATE *rnd)
+{
+    /*
+     * When we are in sweep stress mode, we checkpoint between 4 and 8 seconds, so we'll flush
+     * between 5 and 15 seconds (that is, 5 million and 15 million microseconds). When we aren't in
+     * sweep stress mode, we are checkpointing constantly, and we'll do a flush tier with a random
+     * delay between 0 - 10000 microseconds.
+     */
+    if (g.sweep_stress)
+        g.opts.tiered_flush_interval_us = 5 * WT_MILLION + __wt_random(rnd) % (10 * WT_MILLION);
+    else
+        g.opts.tiered_flush_interval_us = __wt_random(rnd) % 10001;
+}
+
+/*
  * real_checkpointer --
  *     Do the work of creating checkpoints and then verifying them. Also responsible for finishing
  *     in a timely fashion.
@@ -161,32 +186,39 @@ real_checkpointer(void)
     wt_timestamp_t stable_ts, oldest_ts, verify_ts;
     uint64_t delay;
     int ret;
-    char buf[128], timestamp_buf[64];
-    const char *checkpoint_config;
+    char buf[128], flush_tier_config[128], timestamp_buf[64];
+    const char *checkpoint_config, *ts_config;
+    bool flush_tier;
 
-    checkpoint_config = "use_timestamp=false";
+    ts_config = "use_timestamp=false";
     verify_ts = WT_TS_NONE;
+    flush_tier = false;
 
-    if (g.running == 0)
+    if (!g.opts.running)
         return (log_print_err("Checkpoint thread started stopped\n", EINVAL, 1));
 
     __wt_random_init(&rnd);
-    while (g.ntables > g.ntables_created)
+    while (g.ntables > g.ntables_created && g.opts.running)
         __wt_yield();
 
     if ((ret = g.conn->open_session(g.conn, NULL, NULL, &session)) != 0)
         return (log_print_err("conn.open_session", ret, 1));
 
     if (g.use_timestamps)
-        checkpoint_config = "use_timestamp=true";
+        ts_config = "use_timestamp=true";
 
     if (!WT_PREFIX_MATCH(g.checkpoint_name, "WiredTigerCheckpoint")) {
-        testutil_check(
-          __wt_snprintf(buf, sizeof(buf), "name=%s,%s", g.checkpoint_name, checkpoint_config));
+        testutil_check(__wt_snprintf(buf, sizeof(buf), "name=%s,%s", g.checkpoint_name, ts_config));
         checkpoint_config = buf;
-    }
+    } else
+        checkpoint_config = ts_config;
 
-    while (g.running) {
+    testutil_check(__wt_snprintf(
+      flush_tier_config, sizeof(flush_tier_config), "flush_tier=(enabled,force),%s", ts_config));
+
+    set_flush_tier_delay(&rnd);
+
+    while (g.opts.running) {
         /*
          * Check for consistency of online data, here we don't expect to see the version at the
          * checkpoint just a consistent view across all tables.
@@ -208,12 +240,25 @@ real_checkpointer(void)
         }
 
         /* Execute a checkpoint */
-        if ((ret = session->checkpoint(session, checkpoint_config)) != 0)
+        if ((ret = session->checkpoint(
+               session, flush_tier ? flush_tier_config : checkpoint_config)) != 0)
             return (log_print_err("session.checkpoint", ret, 1));
         printf("Finished a checkpoint\n");
         fflush(stdout);
+        if (flush_tier) {
+            /*
+             * FIXME: when we change the API to notify that a flush_tier has completed, we'll need
+             * to set up a general event handler and catch that notification, so we can pass the
+             * flush_tier "cookie" to the test utility function.
+             */
+            testutil_tiered_flush_complete(&g.opts, session, NULL);
+            flush_tier = false;
+            printf("Finished a flush_tier\n");
 
-        if (!g.running)
+            set_flush_tier_delay(&rnd);
+        }
+
+        if (!g.opts.running)
             goto done;
 
         /* Verify the checkpoint we just wrote. */
@@ -230,11 +275,14 @@ real_checkpointer(void)
               timestamp_buf, sizeof(timestamp_buf), "oldest_timestamp=%" PRIx64, g.ts_oldest));
             testutil_check(g.conn->set_timestamp(g.conn, timestamp_buf));
         }
-        /* Random value between 4 and 8 seconds. */
-        if (g.sweep_stress) {
-            delay = __wt_random(&rnd) % 5;
-            __wt_sleep(delay + 4, 0);
-        }
+
+        if (g.sweep_stress)
+            /* Random value between 4 and 8 seconds. */
+            delay = __wt_random(&rnd) % 5 + 4;
+        else
+            /* Just find out if we should flush_tier. */
+            delay = 0;
+        testutil_tiered_sleep(&g.opts, session, delay, &flush_tier);
     }
 
 done:

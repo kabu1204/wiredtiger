@@ -12,29 +12,29 @@
 /*
  * Initialize a static WT_CURSOR structure.
  */
-#define WT_CURSOR_STATIC_INIT(n, get_key, get_value, set_key, set_value, compare, equals, next, \
-  prev, reset, search, search_near, insert, modify, update, remove, reserve, reconfigure,       \
-  largest_key, bound, cache, reopen, checkpoint_id, close)                                      \
-    static const WT_CURSOR n = {                                                                \
-      NULL, /* session */                                                                       \
-      NULL, /* uri */                                                                           \
-      NULL, /* key_format */                                                                    \
-      NULL, /* value_format */                                                                  \
-      get_key, get_value, set_key, set_value, compare, equals, next, prev, reset, search,       \
-      search_near, insert, modify, update, remove, reserve, checkpoint_id, close, largest_key,  \
-      reconfigure, bound, cache, reopen, 0, /* uri_hash */                                      \
-      {NULL, NULL},                         /* TAILQ_ENTRY q */                                 \
-      0,                                    /* recno key */                                     \
-      {0},                                  /* recno raw buffer */                              \
-      NULL,                                 /* json_private */                                  \
-      NULL,                                 /* lang_private */                                  \
-      {NULL, 0, NULL, 0, 0},                /* WT_ITEM key */                                   \
-      {NULL, 0, NULL, 0, 0},                /* WT_ITEM value */                                 \
-      0,                                    /* int saved_err */                                 \
-      NULL,                                 /* internal_uri */                                  \
-      {NULL, 0, NULL, 0, 0},                /* WT_ITEM lower bound */                           \
-      {NULL, 0, NULL, 0, 0},                /* WT_ITEM upper bound */                           \
-      0                                     /* uint32_t flags */                                \
+#define WT_CURSOR_STATIC_INIT(n, get_key, get_value, get_raw_key_value, set_key, set_value,      \
+  compare, equals, next, prev, reset, search, search_near, insert, modify, update, remove,       \
+  reserve, reconfigure, largest_key, bound, cache, reopen, checkpoint_id, close)                 \
+    static const WT_CURSOR n = {                                                                 \
+      NULL, /* session */                                                                        \
+      NULL, /* uri */                                                                            \
+      NULL, /* key_format */                                                                     \
+      NULL, /* value_format */                                                                   \
+      get_key, get_value, get_raw_key_value, set_key, set_value, compare, equals, next, prev,    \
+      reset, search, search_near, insert, modify, update, remove, reserve, checkpoint_id, close, \
+      largest_key, reconfigure, bound, cache, reopen, 0, /* uri_hash */                          \
+      {NULL, NULL},                                      /* TAILQ_ENTRY q */                     \
+      0,                                                 /* recno key */                         \
+      {0},                                               /* recno raw buffer */                  \
+      NULL,                                              /* json_private */                      \
+      NULL,                                              /* lang_private */                      \
+      {NULL, 0, NULL, 0, 0},                             /* WT_ITEM key */                       \
+      {NULL, 0, NULL, 0, 0},                             /* WT_ITEM value */                     \
+      0,                                                 /* int saved_err */                     \
+      NULL,                                              /* internal_uri */                      \
+      {NULL, 0, NULL, 0, 0},                             /* WT_ITEM lower bound */               \
+      {NULL, 0, NULL, 0, 0},                             /* WT_ITEM upper bound */               \
+      0                                                  /* uint32_t flags */                    \
     }
 
 /* Call a function without the evict reposition cursor flag, restore afterwards. */
@@ -294,6 +294,12 @@ struct __wt_cursor_bulk {
 
 struct __wt_cursor_config {
     WT_CURSOR iface;
+};
+
+struct __wt_cursor_bounds_state {
+    WT_ITEM *lower_bound;
+    WT_ITEM *upper_bound;
+    uint64_t bound_flags;
 };
 
 struct __wt_cursor_data_source {
@@ -586,3 +592,19 @@ struct __wt_cursor_version {
 
 #define WT_CURSOR_RAW_OK \
     (WT_CURSTD_DUMP_HEX | WT_CURSTD_DUMP_PRETTY | WT_CURSTD_DUMP_PRINT | WT_CURSTD_RAW)
+
+/*
+ * This macro provides a consistent way of checking if a cursor has either its lower or upper bound
+ * set.
+ */
+#define WT_CURSOR_BOUNDS_SET(cursor) \
+    F_ISSET((cursor), WT_CURSTD_BOUND_LOWER | WT_CURSTD_BOUND_UPPER)
+
+/*
+ * A positioned cursor must have a page, this is a requirement of the cursor logic within the
+ * wiredtiger API. As such if the page on the cursor is not null we can safely assume that the
+ * cursor is positioned.
+ *
+ * This is primarily used by cursor bound checking logic.
+ */
+#define WT_CURSOR_IS_POSITIONED(cbt) (cbt->ref != NULL && cbt->ref->page != NULL)

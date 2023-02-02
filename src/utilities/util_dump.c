@@ -6,7 +6,6 @@
  * See the file LICENSE for redistribution information.
  */
 
-#include <assert.h>
 #include "util.h"
 #include "util_dump.h"
 
@@ -48,7 +47,7 @@ usage(void)
       "encoded). The -x flag can be combined with -p. In this case, the dump will be formatted "
       "similar to -p except for raw data elements, which will look like -x with hexadecimal "
       "encoding.",
-      NULL, NULL};
+      "-?", "show this message", NULL, NULL};
 
     util_usage(
       "dump [-jprx] [-c checkpoint] [-f output-file] [-t timestamp] uri", "options:", options);
@@ -79,7 +78,7 @@ util_dump(WT_SESSION *session, int argc, char *argv[])
     hs_dump_cursor = NULL;
     checkpoint = ofile = simpleuri = uri = timestamp = NULL;
     hex = json = pretty = reverse = false;
-    while ((ch = __wt_getopt(progname, argc, argv, "c:f:t:jprx")) != EOF)
+    while ((ch = __wt_getopt(progname, argc, argv, "c:f:t:jprx?")) != EOF)
         switch (ch) {
         case 'c':
             checkpoint = __wt_optarg;
@@ -103,6 +102,8 @@ util_dump(WT_SESSION *session, int argc, char *argv[])
             hex = true;
             break;
         case '?':
+            usage();
+            return (0);
         default:
             return (usage());
         }
@@ -422,8 +423,8 @@ dump_projection(WT_SESSION *session, const char *config, WT_CURSOR *cursor, char
 
             /* copy names of projected values */
             p = strchr(cursor->uri, '(');
-            assert(p != NULL);
-            assert(p[strlen(p) - 1] == ')');
+            WT_ASSERT((WT_SESSION_IMPL *)session, p != NULL);
+            WT_ASSERT((WT_SESSION_IMPL *)session, p[strlen(p) - 1] == ')');
             p++;
             if (*p != ')')
                 WT_RET(dump_add_config(session, &newconfig, &len, "%s", ","));
@@ -437,7 +438,7 @@ dump_projection(WT_SESSION *session, const char *config, WT_CURSOR *cursor, char
     if (ret != WT_NOTFOUND)
         return (util_err(session, ret, "WT_CONFIG_PARSER.next"));
 
-    assert(len > 0);
+    WT_ASSERT((WT_SESSION_IMPL *)session, len > 0);
     if ((ret = parser->close(parser)) != 0)
         return (util_err(session, ret, "WT_CONFIG_PARSER.close"));
 

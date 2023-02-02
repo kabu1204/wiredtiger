@@ -830,7 +830,9 @@ err:
 
 /*
  * __btree_get_last_recno --
- *     Set the last record number for a column-store.
+ *     Set the last record number for a column-store. Note that this is used to handle appending to
+ *     a column store after a truncate operation. It is not related to the WT_CURSOR::largest_key
+ *     API.
  */
 static int
 __btree_get_last_recno(WT_SESSION_IMPL *session)
@@ -841,9 +843,23 @@ __btree_get_last_recno(WT_SESSION_IMPL *session)
     uint32_t flags;
 
     btree = S2BT(session);
-    flags = WT_READ_PREV;
-    if (!F_ISSET(session->txn, WT_TXN_HAS_SNAPSHOT))
-        LF_SET(WT_READ_VISIBLE_ALL);
+
+    /*
+     * The last record number is used to support appending to a column store tree that has had a
+     * final page truncated. Since checkpoint trees are read-only they don't need the value.
+     */
+    if (WT_READING_CHECKPOINT(session)) {
+        btree->last_recno = WT_RECNO_OOB;
+        return (0);
+    }
+
+    /*
+     * The endpoint for append is global; read the last page with global visibility to make sure
+     * that if the end of the tree is truncated we don't start appending in the truncated space
+     * unless the truncation has become globally visible. (Note that this path does not examine the
+     * visibility of individual data items; it only checks whether whole pages are deleted.)
+     */
+    flags = WT_READ_PREV | WT_READ_VISIBLE_ALL;
 
     next_walk = NULL;
     WT_RET(__wt_tree_walk(session, &next_walk, flags));
@@ -937,7 +953,7 @@ __btree_page_sizes(WT_SESSION_IMPL *session)
     btree->maxmempage = (uint64_t)cval.val;
     if (!F_ISSET(conn, WT_CONN_CACHE_POOL) && (cache_size = conn->cache_size) > 0)
         btree->maxmempage = (uint64_t)WT_MIN(
-          btree->maxmempage, (conn->cache->eviction_dirty_trigger * cache_size) / 1000);
+          btree->maxmempage, (conn->cache->eviction_dirty_trigger * cache_size) / WT_THOUSAND);
 
     /* Enforce a lower bound of a single disk leaf page */
     btree->maxmempage = WT_MAX(btree->maxmempage, btree->maxleafpage);
@@ -1017,12 +1033,18 @@ int
 __wt_btree_switch_object(WT_SESSION_IMPL *session, uint32_t objectid)
 {
     WT_BM *bm;
+    WT_BTREE *btree;
+
+    btree = S2BT(session);
+    /* If the btree is readonly, there is nothing to do. */
+    if (F_ISSET(btree, WT_BTREE_READONLY))
+        return (0);
 
     /*
      * When initially opening a tiered Btree, a tier switch is done internally without the btree
      * being fully opened. That's okay, the btree will be told later about the current object
      * number.
      */
-    bm = S2BT(session)->bm;
+    bm = btree->bm;
     return (bm == NULL ? 0 : bm->switch_object(bm, session, objectid));
 }

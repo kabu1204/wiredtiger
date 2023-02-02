@@ -37,10 +37,13 @@ BBBBBBBBBB
 BBBBBBBBBBBBB
 BBBBBBBBBBBBBBBB
 BBBBBBBBBBBBBBBBBB
+BCmvxz
 BDB
 BDB's
+BDmpvXx
 BIGENDIAN
 BLKCACHE
+BLmRrSVv
 BOOL
 BSR
 BTREE
@@ -51,8 +54,7 @@ BerkeleyDB
 Bitfield
 Bitstring
 Bitwise
-BlqR
-BqRt
+BqRv
 Brueckner
 Bsearch
 Btree
@@ -91,7 +93,8 @@ Checksum
 Checksums
 CityHash
 CloseHandle
-Cmvxz
+CmP
+CmPTh
 Cmvz
 Collet
 Comparator
@@ -109,6 +112,7 @@ DECL
 DECR
 DESC
 DHANDLE
+DIAG
 DIRECTIO
 DNE
 DOI
@@ -125,7 +129,7 @@ Decrypt
 DeleteFileW
 Destructor
 Deterministically
-DmpvXx
+Dxxx
 EACCES
 EAGAIN
 EB
@@ -155,6 +159,7 @@ Encryptors
 Enqueue
 Eron
 Exponentiate
+Exxx
 FALLOC
 FALLTHROUGH
 FH
@@ -227,11 +232,13 @@ INTL
 INTRINSICS
 INULL
 INUSE
+INVL
 ISA
 ITEMs
 ITER
 InitializeCriticalSectionAndSpinCount
 Inline
+Instantiation
 Intra
 Ippokratis
 Iu
@@ -269,7 +276,6 @@ LeafGreen
 LevelDB
 Levyx
 LibFuzzer
-LmRrSVv
 LoadLoad
 LockFile
 LogSystemInterface
@@ -350,13 +356,18 @@ PRId
 PRIu
 PRIuXX
 PRNG
+PSD
+PSE
 PTHREAD
 PTR
 PackInputStream
 PackOutputStream
 Pandis
+Pe
 Phong
 PlatformSDK
+Podir
+Pomy
 Posix
 PostgreSQL
 Postrun
@@ -366,6 +377,7 @@ Preload
 Prepend
 Prepending
 Prev
+Px
 QQQS
 QSQ
 Qsort
@@ -373,10 +385,12 @@ RCS
 RDNOLOCK
 RDONLY
 READONLY
+REALLOC
 RECNO
 REF's
 REFs
 RET
+RETRYABLE
 RHEL
 RLE
 RLEs
@@ -392,6 +406,7 @@ RXB
 Radu
 ReadFile
 Readonly
+Realloc
 RedHat
 Redistributions
 Refactor
@@ -416,6 +431,7 @@ STEC
 STL
 STR
 STRUCT
+SYSCALL
 Scalability
 Scalable
 Sedgewick
@@ -446,6 +462,7 @@ TIMESTAMPS
 TMP
 TODO
 TORTIOUS
+TRYLOCK
 TSO
 TW
 TXN
@@ -456,6 +473,7 @@ ThreadListWrapper
 Timespec
 Timestamp
 Timestamps
+Tput
 TryCV
 TxnID
 UDF
@@ -547,11 +565,13 @@ aa
 aaa
 abcdef
 abcdefghijklmnopqrstuvwxyz
+acstu
 addl
 addr
 addrs
 addtw
 agc
+ajn
 alfred
 alloc
 allocator
@@ -572,6 +592,7 @@ aspell
 assertfmt
 async
 atomicity
+atou
 auth
 autocommit
 autoconf
@@ -589,6 +610,7 @@ batchSize
 bb
 bba
 bbb
+bbuilddir
 bcr
 beginthreadex
 bigram
@@ -607,6 +629,8 @@ bm
 bnd
 bool
 boolean
+booleans
+boption
 br
 breakpoint
 bs
@@ -744,6 +768,7 @@ cursoring
 cursorp
 curstartrecno
 curstat
+curstd
 curtable
 curtiered
 curversion
@@ -761,6 +786,7 @@ datalen
 datasets
 datasource
 datastore
+dbar
 dbc
 dbs
 dcalloc
@@ -815,6 +841,7 @@ dmsg
 doxgen
 doxygen
 drealloc
+dryrun
 ds
 dsb
 dsbs
@@ -828,6 +855,7 @@ dsync
 dumpcmp
 dumpfile
 dup
+dv
 eee
 eg
 egrep
@@ -851,6 +879,8 @@ errhandler
 errno
 errx
 esc
+ev
+evd
 eventv
 evictable
 evictserver
@@ -938,6 +968,7 @@ getline
 getone
 getones
 getopt
+getpid
 getraw
 gettime
 gettimeofday
@@ -965,6 +996,7 @@ hhh
 highjack
 hilq
 hotbackup
+hpp
 hs
 hselasky
 html
@@ -1047,6 +1079,7 @@ iteratively
 iters
 jjj
 jprx
+js
 json
 kB
 kb
@@ -1092,6 +1125,7 @@ llvm
 loadtext
 loc
 localTime
+localid
 localkey
 localtime
 localvalue
@@ -1136,6 +1170,7 @@ maxObjects
 maxcpu
 maxdbs
 maxdiff
+maxv
 mb
 mbll
 mbss
@@ -1203,6 +1238,7 @@ newv
 nextprev
 nfilename
 nhex
+nlohmann
 nlpo
 nocase
 noclear
@@ -1251,6 +1287,7 @@ oplist
 oplog
 optimizations
 optrack
+optwt
 optype
 ori
 origstartrecno
@@ -1260,10 +1297,12 @@ other's
 oversized
 ovfl
 ownp
+pR
 packv
 pagedump
 pageref
 pagesize
+pagestat
 param
 parens
 pareto
@@ -1361,6 +1400,7 @@ regionp
 reinitialization
 relocked
 repl
+repositioned
 repositions
 resizable
 resize
@@ -1421,7 +1461,7 @@ snprintf
 sp
 spinlock
 spinlocks
-sprintf
+srand
 src
 srch
 ss
@@ -1441,6 +1481,7 @@ strerror
 strftime
 strget
 strlen
+strncat
 strncpy
 strndup
 strnlen
@@ -1461,6 +1502,7 @@ suboptimal
 subsystem's
 subtest
 subtree
+sumv
 sunique
 supd
 superset
@@ -1526,6 +1568,7 @@ txn
 txnc
 txnid
 txnmin
+txp
 txt
 typedef
 typemaps
@@ -1551,6 +1594,7 @@ unhandled
 unicode
 uninstantiated
 unistd
+unittest
 unlink
 unlinked
 unmap
@@ -1563,6 +1607,7 @@ unmodify
 unordered
 unpackv
 unpadded
+unpositioned
 unreconciled
 unreferenced
 unregister
@@ -1588,6 +1633,9 @@ util
 utils
 uu
 vN
+vPodir
+vPomy
+vW
 va
 valgrind
 validator
@@ -1596,6 +1644,7 @@ valuev
 vanishingly
 variable's
 variadic
+vd
 vdata
 vec
 vectorized

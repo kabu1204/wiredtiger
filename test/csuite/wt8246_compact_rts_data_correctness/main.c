@@ -31,9 +31,8 @@
 
 #define TIMEOUT 1
 
-#define NUM_RECORDS 800000
+#define NUM_RECORDS (800 * WT_THOUSAND)
 
-#define ENV_CONFIG_REC "log=(recover=on,remove=false)"
 /* Constants and variables declaration. */
 /*
  * You may want to add "verbose=[compact,compact_progress]" to the connection config string to get
@@ -41,7 +40,7 @@
  */
 static const char conn_config[] =
   "create,cache_size=1GB,timing_stress_for_test=[compact_slow],statistics=(all),statistics_log=("
-  "wait=1,json=true,on_close=true)";
+  "json,on_close,wait=1)";
 static const char table_config_row[] =
   "allocation_size=4KB,leaf_page_max=4KB,key_format=Q,value_format=QQQS";
 static const char table_config_col[] =
@@ -181,7 +180,7 @@ run_test(bool column_store, const char *uri, bool preserve)
     printf("Open database and run recovery\n");
 
     /* Open the connection which forces recovery to be run. */
-    testutil_check(wiredtiger_open(home, NULL, ENV_CONFIG_REC, &conn));
+    testutil_check(wiredtiger_open(home, NULL, TESTUTIL_ENV_CONFIG_REC, &conn));
     testutil_check(conn->open_session(conn, NULL, NULL, &session));
 
     /*
@@ -323,6 +322,7 @@ static void
 large_updates(WT_SESSION *session, const char *uri, char *value, int commit_ts)
 {
     WT_CURSOR *cursor;
+    WT_DECL_RET;
     WT_RAND_STATE rnd;
     uint64_t val;
     int i;
@@ -337,8 +337,12 @@ large_updates(WT_SESSION *session, const char *uri, char *value, int commit_ts)
         cursor->set_key(cursor, i + 1);
         val = (uint64_t)__wt_random(&rnd);
         cursor->set_value(cursor, val, val, val, value);
-        testutil_check(cursor->insert(cursor));
-        testutil_check(session->commit_transaction(session, tscfg));
+        if ((ret = cursor->insert(cursor)) == WT_ROLLBACK)
+            testutil_check(session->rollback_transaction(session, NULL));
+        else {
+            testutil_check(ret);
+            testutil_check(session->commit_transaction(session, tscfg));
+        }
     }
 
     testutil_check(cursor->close(cursor));

@@ -76,6 +76,7 @@ typedef struct {
      * Configuration values are set at startup.
      */
     uint32_t delay_ms;    /* Average length of delay when simulated */
+    uint32_t error_ms;    /* Average length of sleep when simulated */
     uint32_t force_delay; /* Force a simulated network delay every N operations */
     uint32_t force_error; /* Force a simulated network error every N operations */
     uint32_t verbose;     /* Verbose level */
@@ -197,6 +198,8 @@ dir_store_configure(DIR_STORE *dir_store, WT_CONFIG_ARG *config)
 
     if ((ret = dir_store_configure_int(dir_store, config, "delay_ms", &dir_store->delay_ms)) != 0)
         return (ret);
+    if ((ret = dir_store_configure_int(dir_store, config, "error_ms", &dir_store->error_ms)) != 0)
+        return (ret);
     if ((ret = dir_store_configure_int(
            dir_store, config, "force_delay", &dir_store->force_delay)) != 0)
         return (ret);
@@ -237,13 +240,27 @@ dir_store_configure_int(
 }
 
 /*
+ * sleep_ms --
+ *     Sleep for the specified milliseconds.
+ */
+static void
+sleep_ms(uint32_t ms)
+{
+    struct timeval tv;
+
+    /* Cast needed for some compilers that suspect the calculation can overflow (it can't). */
+    tv.tv_sec = ms / 1000;
+    tv.tv_usec = (suseconds_t)(ms % 1000) * 1000;
+    (void)select(0, NULL, NULL, NULL, &tv);
+}
+
+/*
  * dir_store_delay --
  *     Add any artificial delay or simulated network error during an object transfer.
  */
 static int
 dir_store_delay(DIR_STORE *dir_store)
 {
-    struct timeval tv;
     int ret;
 
     ret = 0;
@@ -253,21 +270,16 @@ dir_store_delay(DIR_STORE *dir_store)
           "Artificial delay %" PRIu32 " milliseconds after %" PRIu64 " object reads, %" PRIu64
           " object writes\n",
           dir_store->delay_ms, dir_store->object_reads, dir_store->object_writes);
-        /*
-         * tv_usec has type suseconds_t, which is signed (hence the s), but ->delay_ms is unsigned.
-         * In both gcc8 and gcc10 with -Wsign-conversion enabled (as we do) this causes a spurious
-         * warning about the implicit conversion possibly changing the value. Hence the explicit
-         * cast. (both struct timeval and suseconds_t are POSIX)
-         */
-        tv.tv_sec = dir_store->delay_ms / 1000;
-        tv.tv_usec = (suseconds_t)(dir_store->delay_ms % 1000) * 1000;
-        (void)select(0, NULL, NULL, NULL, &tv);
+        sleep_ms(dir_store->delay_ms);
     }
     if (dir_store->force_error != 0 &&
       (dir_store->object_reads + dir_store->object_writes) % dir_store->force_error == 0) {
         VERBOSE_LS(dir_store,
-          "Artificial error returned after %" PRIu64 " object reads, %" PRIu64 " object writes\n",
-          dir_store->object_reads, dir_store->object_writes);
+          "Artificial error returned after %" PRIu32 " milliseconds sleep, %" PRIu64
+          " object reads, %" PRIu64 " object writes\n",
+          dir_store->error_ms, dir_store->object_reads, dir_store->object_writes);
+
+        sleep_ms(dir_store->error_ms);
         ret = ENETUNREACH;
     }
 
@@ -318,9 +330,12 @@ dir_store_get_directory(const char *home, const char *s, ssize_t len, bool creat
         dirname = strndup(s, (size_t)len + 1); /* Room for null */
     else {
         buflen = (size_t)len + strlen(home) + 2; /* Room for slash, null */
-        if ((dirname = malloc(buflen)) != NULL)
-            if (snprintf(dirname, buflen, "%s/%.*s", home, (int)len, s) >= (int)buflen)
+        if ((dirname = malloc(buflen)) != NULL) {
+            if (snprintf(dirname, buflen, "%s/%.*s", home, (int)len, s) >= (int)buflen) {
+                free(dirname);
                 return (EINVAL);
+            }
+        }
     }
     if (dirname == NULL)
         return (ENOMEM);
@@ -398,8 +413,10 @@ dir_store_path(WT_FILE_SYSTEM *file_system, const char *dir, const char *name, c
     len = strlen(dir) + strlen(name) + 2;
     if ((p = malloc(len)) == NULL)
         return (dir_store_err(FS2DS(file_system), NULL, ENOMEM, "dir_store_path"));
-    if (snprintf(p, len, "%s/%s", dir, name) >= (int)len)
-        return (dir_store_err(FS2DS(file_system), NULL, EINVAL, "overflow sprintf"));
+    if (snprintf(p, len, "%s/%s", dir, name) >= (int)len) {
+        free(p);
+        return (dir_store_err(FS2DS(file_system), NULL, EINVAL, "overflow snprintf"));
+    }
     *pathp = p;
     return (ret);
 }
@@ -429,6 +446,7 @@ dir_store_stat(WT_FILE_SYSTEM *file_system, WT_SESSION *session, const char *nam
     if (ret != 0 && errno == ENOENT) {
         /* It's not in the cache, try the bucket directory. */
         free(path);
+        path = NULL;
         if ((ret = dir_store_bucket_path(file_system, name, &path)) != 0)
             goto err;
         ret = stat(path, statp);
@@ -626,6 +644,9 @@ dir_store_file_copy(DIR_STORE *dir_store, WT_SESSION *session, const char *src_p
             goto err;
         }
 
+    if (tmp_path == NULL)
+        return (ENOMEM);
+
     if ((ret = dir_store->wt_api->file_system_get(dir_store->wt_api, session, &wt_fs)) != 0) {
         ret = dir_store_err(
           dir_store, session, ret, "dir_store_file_system: cannot get WiredTiger file system");
@@ -637,7 +658,7 @@ dir_store_file_copy(DIR_STORE *dir_store, WT_SESSION *session, const char *src_p
          * It is normal and possible that the source file was dropped. Don't print out an error
          * message in that case, but still return the ENOENT error value.
          */
-        if ((ret != 0 && ret != ENOENT) || (ret == ENOENT && !enoent_okay))
+        if ((ret == ENOENT && !enoent_okay) || (ret != 0))
             ret = dir_store_err(dir_store, session, ret, "%s: cannot open for read", src_path);
         goto err;
     }
@@ -762,7 +783,7 @@ dir_store_flush_finish(WT_STORAGE_SOURCE *storage_source, WT_SESSION *session,
         goto err;
     }
     /* Set the file to readonly in the cache. */
-    if (ret == 0 && (ret = chmod(dest_path, 0444)) < 0)
+    if ((ret = chmod(dest_path, 0444)) < 0)
         ret =
           dir_store_err(dir_store, session, errno, "%s: ss_flush_finish chmod failed", dest_path);
 err:
