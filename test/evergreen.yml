@@ -99,16 +99,6 @@ functions:
       working_dir: "wiredtiger"
       shell: bash
       script: |
-<<<<<<< HEAD
-        # Fetch the gperftools library.
-        if [[ "${posix_configure_flags|}" =~ (tcmalloc|TCMALLOC) ]]; then
-          is_cmake_build=true
-          git clone git@github.com:wiredtiger/automation-scripts.git
-          . automation-scripts/evergreen/find_gperftools.sh ${s3_access_key} ${s3_secret_key} ${build_variant} $is_cmake_build
-        fi
-
-=======
->>>>>>> develop
         set -o errexit
         # Not setting verbose mode as we have sensitive keys that could be logged.
 
@@ -225,25 +215,8 @@ functions:
         script: |
           set -o errexit
           set -o verbose
-<<<<<<< HEAD
-          if [ "$OS" != "Windows_NT" ]; then
-            . test/evergreen/find_cmake.sh
-            if [ -d cmake_build ]; then rm -r cmake_build; fi
-            mkdir -p cmake_build
-            cd cmake_build
-            $CMAKE -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/mongodbtoolchain_v4_clang.cmake -DCMAKE_C_FLAGS="-ggdb" -DWITH_PIC=1 \
-              -DENABLE_STRICT=1 -DHAVE_DIAGNOSTIC=1 ${NON_BARRIER_DIAGNOSTIC_YIELDS|} -DCMAKE_BUILD_TYPE=ASan \
-              -DHAVE_BUILTIN_EXTENSION_LZ4=1 -DHAVE_BUILTIN_EXTENSION_SNAPPY=1 -DHAVE_BUILTIN_EXTENSION_ZLIB=1 -DHAVE_BUILTIN_EXTENSION_ZSTD=1 ${configure_python_setting|} \
-              -G "${cmake_generator|Ninja}" ../.
-          fi
-    - *make_wiredtiger
-  # FIXME-WT-8981 - Ubuntu PPC tests have been replaced by RHEL8 tests as of WT-8688, but the RHEL8 tests are currently disabled
-  # due to platform issues. On completion of WT-8981 this can be deleted.
-  "compile wiredtiger address sanitizer ppc ubuntu":
-=======
           ${test_env_vars|} ../../../tools/run_parallel.sh 'nice ./recovery-test.sh "${data_validation_stress_test_args} ${run_test_checkpoint_args}" WT_TEST.$t test_checkpoint' 120
   "run tiered storage test":
->>>>>>> develop
     - command: shell.exec
       params:
         working_dir: "wiredtiger/cmake_build"
@@ -633,34 +606,6 @@ functions:
         display_name: WT Hang Analyzer Output - Execution ${execution}
         remote_file: wiredtiger/${build_variant}/${revision}/wt_hang_analyzer/wt-hang-analyzer_${task_name}_${build_id}${postfix|}.tgz
 
-<<<<<<< HEAD
-  "dump stacktraces":
-    - command: shell.exec
-      params:
-        working_dir: "wiredtiger/cmake_build"
-        script: |
-          set -o errexit
-          set -o verbose
-          # Parse through any failures inside the WT_TEST directory.
-          ${python_binary|python3} ../test/evergreen/print_stack_trace.py --unit_test -e ${python_binary|python3} -c WT_TEST -l .
-
-          # Look through the stress format directory for any coredumps.
-          cd test/format
-          ${python_binary|python3} ../../../test/evergreen/print_stack_trace.py --format -e ./t -c . -l .
-    - command: s3.put
-      params:
-        aws_secret: ${aws_secret}
-        aws_key: ${aws_key}
-        local_files_include_filter:
-          - wiredtiger/cmake_build/*stacktrace.txt
-          - wiredtiger/cmake_build/test/format/*stacktrace.txt
-        bucket: build_external
-        permissions: public-read
-        content_type: text/plain
-        remote_file: wiredtiger/${build_variant}/${revision}/artifacts/
-
-=======
->>>>>>> develop
   "dump stderr/stdout":
     command: shell.exec
     params:
@@ -887,13 +832,7 @@ variables:
             ASAN_OPTIONS="detect_leaks=1:abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1"
             ASAN_SYMBOLIZER_PATH=/opt/mongodbtoolchain/v4/bin/llvm-symbolizer
 
-<<<<<<< HEAD
-  # FIXME-WT-8981 - Ubuntu PPC tests have been replaced by RHEL8 tests as of WT-8688, but the RHEL8 tests are currently disabled
-  # due to platform issues. On completion of WT-8981 this can be deleted.
-  - &format-stress-sanitizer-test-ppc-ubuntu
-=======
   - &format-stress-sanitizer-test
->>>>>>> develop
     exec_timeout_secs: 25200
     commands:
       - func: "get project"
@@ -1288,501 +1227,6 @@ tasks:
           test_config: debug_mode=(cursor_copy=true)
           test_config_filename: configs/hs_cleanup_default.txt
           test_name: hs_cleanup
-  
-  - name: cppsuite-9512-ruby
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-1
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-2
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-3
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-4
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-
-  - name: cppsuite-9512-ruby-5
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-6
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-7
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-8
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-9
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-    
-  - name: cppsuite-9512-ruby-10
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-
-  - name: cppsuite-9512-ruby-01
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-11
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-12
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-13
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-14
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-
-  - name: cppsuite-9512-ruby-15
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-16
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-17
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-18
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-19
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-    
-  - name: cppsuite-9512-ruby-20
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-
-  - name: cppsuite-9512-ruby-02
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-21
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-22
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-23
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-24
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-
-  - name: cppsuite-9512-ruby-25
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-26
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-27
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-28
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-  
-  - name: cppsuite-9512-ruby-29
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
-    
-  - name: cppsuite-9512-ruby-30
-    tags: ["9512-ruby"]
-    depends_on:
-      - name: compile
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "cppsuite test"
-        vars:
-          test_config: debug_mode=(cursor_copy=true)
-          test_config_filename: configs/ruby_default.txt
-          test_name: ruby
 
   - name: cppsuite-burst-inserts-default
     tags: ["pull_request"]
@@ -3475,13 +2919,6 @@ tasks:
 
             # Run S3 extension unit testing.
             ext/storage_sources/s3_store/test/run_s3_unit_tests
-<<<<<<< HEAD
-            # Run Python testing for tiered06
-            ${test_env_vars|} python3 ../test/suite/run.py -j $(nproc) tiered06
-
-
-=======
->>>>>>> develop
   - name: spinlock-gcc-test
     commands:
       - func: "get project"
@@ -3686,22 +3123,6 @@ tasks:
   - name: format-asan-smoke-test
     commands:
       - func: "get project"
-<<<<<<< HEAD
-      - func: "compile wiredtiger address sanitizer"
-      - func: "format test script"
-        vars:
-          test_env_vars:
-            ASAN_OPTIONS="detect_leaks=1:abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1"
-            ASAN_SYMBOLIZER_PATH=/opt/mongodbtoolchain/v4/bin/llvm-symbolizer
-          format_test_script_args: -S
-
-  # FIXME-WT-8981 - Ubuntu PPC tests have been replaced by RHEL8 tests as of WT-8688, but the RHEL8 tests are currently disabled
-  # due to platform issues. On completion of WT-8981 this can be deleted.
-  - name: format-asan-smoke-ppc-test
-    commands:
-      - func: "get project"
-=======
->>>>>>> develop
       - func: "compile wiredtiger"
         vars:
           <<: *configure_flags_address_sanitizer_mongodb_stable_clang_with_builtins
@@ -4177,15 +3598,11 @@ tasks:
     name: recovery-stress-test-3-nonstandalone
     tags: ["stress-test-3-nonstandalone"]
 
-  - name: format-stress-test-no-barrier-0
-    tags: ["WT-9512"]
+  - name: format-stress-test-no-barrier
+    tags: ["stress-test-no-barrier"]
     exec_timeout_secs: 25200
     commands:
       - func: "get project"
-<<<<<<< HEAD
-      - func: "compile wiredtiger with builtins"
-        vars:
-=======
       - func: "compile wiredtiger"
         vars:
           <<: *configure_flags_with_builtins
@@ -4193,6 +3610,85 @@ tasks:
       - func: "format test script"
         vars:
           format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360
+
+  - name: format-stress-test-no-barrier-1
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+
+  - name: format-stress-test-no-barrier-2
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+
+
+  - name: format-stress-test-no-barrier-3
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+
+  - name: format-stress-test-no-barrier-4
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+
+  - name: format-stress-test-no-barrier-5
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+
+  - name: format-stress-test-no-barrier-6
+    tags: ["WT-9512"]
+    exec_timeout_secs: 25200
+    commands:
+      - func: "get project"
+      - func: "compile wiredtiger"
+        vars:
+        <<: *configure_flags_with_builtins
+        NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
+      - func: "format test script"
+        vars:
+          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
 
   - name: format-stress-test-no-barrier-nonstandalone
     tags: ["stress-test-no-barrier-nonstandalone"]
@@ -4203,301 +3699,19 @@ tasks:
         vars:
           <<: *configure_flags_with_builtins
           NONSTANDALONE: -DWT_STANDALONE_BUILD=0
->>>>>>> develop
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-1
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-2
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-3
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-4
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-5
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-6
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-7
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-8
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-9
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-10
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-11
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-12
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-13
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-14
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-15
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-16
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-17
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-18
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-19
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-20
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-21
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-22
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
-
-  - name: format-stress-test-no-barrier-23
-    tags: ["WT-9512"]
-    exec_timeout_secs: 25200
-    commands:
-      - func: "get project"
-      - func: "compile wiredtiger with builtins"
-        vars:
-          NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
-      - func: "format test script"
-        vars:
-          format_test_script_args: -F -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360 -v -c ../../../WT-9512_TABLE_2.CONFIG
+          format_test_script_args: -e "SEGFAULT_SIGNALS=all" -b "catchsegv ./t" -t 360
 
   - name: format-stress-sanitizer-test-no-barrier
     tags: ["stress-test-no-barrier-sanitizer"]
     exec_timeout_secs: 25200
     commands:
       - func: "get project"
-<<<<<<< HEAD
-      - func: "compile wiredtiger address sanitizer"
-        vars:
-=======
       - func: "compile wiredtiger"
         vars:
           <<: *configure_flags_address_sanitizer_mongodb_stable_clang_with_builtins
->>>>>>> develop
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
@@ -4511,14 +3725,9 @@ tasks:
     exec_timeout_secs: 25200
     commands:
       - func: "get project"
-<<<<<<< HEAD
-      - func: "compile wiredtiger address sanitizer"
-        vars:
-=======
       - func: "compile wiredtiger"
         vars:
           <<: *configure_flags_address_sanitizer_mongodb_stable_clang_with_builtins
->>>>>>> develop
           NON_BARRIER_DIAGNOSTIC_YIELDS: -DNON_BARRIER_DIAGNOSTIC_YIELDS=1
       - func: "format test script"
         vars:
@@ -5764,6 +4973,7 @@ buildvariants:
     - name: ".stress-test-3"
     - name: ".stress-test-4"
     - name: ".stress-test-no-barrier"
+    - name: ".WT-9512"
     - name: ".stress-test-no-barrier-sanitizer"
     - name: ".stress-test-sanitizer-1"
     - name: ".stress-test-sanitizer-2"
@@ -5803,81 +5013,7 @@ buildvariants:
     - name: ".stress-test-3"
     - name: ".stress-test-4"
     - name: ".stress-test-no-barrier"
-    - name: ".WT-9512"
     - name: format-abort-recovery-stress-test
-    - name: ".9512-ruby"
-  display_tasks:
-    - name: WT-9512
-      execution_tasks:
-      - ".WT-9512"
-    - name: 9512-ruby
-      execution_tasks:
-      - ".9512-ruby"
-
-
-- name: ubuntu2004-perf-tests
-  display_name: Ubuntu 20.04 Performance tests
-  batchtime: 1440 # 1 day
-  run_on:
-    - ubuntu2004-medium
-  expansions:
-    test_env_vars:
-      WT_TOPDIR=$(git rev-parse --show-toplevel)
-      WT_BUILDDIR=$WT_TOPDIR/cmake_build
-      LD_LIBRARY_PATH=$WT_BUILDDIR:$WT_BUILDDIR/test/utility/
-    posix_configure_flags:
-      -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/mongodbtoolchain_v3_gcc.cmake
-      -DCMAKE_C_FLAGS="-ggdb"
-      -DHAVE_DIAGNOSTIC=1
-      -DENABLE_PYTHON=1
-      -DENABLE_ZLIB=1
-      -DENABLE_SNAPPY=1
-      -DENABLE_STRICT=1
-      -DCMAKE_INSTALL_PREFIX=$(pwd)/LOCAL_INSTALL
-    python_binary: '/opt/mongodbtoolchain/v3/bin/python3'
-    pip3_binary: '/opt/mongodbtoolchain/v3/bin/pip3'
-    virtualenv_binary: '/opt/mongodbtoolchain/v3/bin/virtualenv'
-    smp_command: -j $(echo "`grep -c ^processor /proc/cpuinfo` * 2" | bc)
-    cmake_generator: Ninja
-    make_command: ninja
-  tasks:
-    - name: compile
-    - name: ".btree-perf"
-    # Disable LSM perf tests till the support for LSM is restored.
-    # - name: ".lsm-perf"
-    - name: ".stress-perf"
-    - name: ".checkpoint-perf"
-    - name: ".evict-perf"
-    - name: ".log-perf"
-    - name: ".long-perf"
-    - name: many-dhandle-stress
-    - name: ".wt2853-perf"
-  display_tasks:
-    - name: Wiredtiger-perf-btree-jobs
-      execution_tasks:
-      - ".btree-perf"
-    # Disable LSM perf tests till the support for LSM is restored.
-    # - name: Wiredtiger-perf-lsm-jobs
-    #   execution_tasks:
-    #   - ".lsm-perf"
-    - name: Wiredtiger-perf-stress-jobs
-      execution_tasks:
-      - ".stress-perf"
-    - name: Wiredtiger-perf-checkpoint-jobs
-      execution_tasks:
-      - ".checkpoint-perf"
-    - name: Wiredtiger-perf-evict-jobs
-      execution_tasks:
-      - ".evict-perf"
-    - name: Wiredtiger-perf-log-jobs
-      execution_tasks:
-      - ".log-perf"
-    - name: Wiredtiger-perf-long-jobs
-      execution_tasks:
-      - ".long-perf"
-    - name: WiredTiger-wt2853-perf
-      execution_tasks:
-      - ".wt2853-perf"
     - name: ".stress-test-1-nonstandalone"
     - name: ".stress-test-2-nonstandalone"
     - name: ".stress-test-3-nonstandalone"
@@ -6222,3 +5358,4 @@ buildvariants:
     - name: unit-test-nonstandalone
     - name: unit-test-long-nonstandalone
       distros: amazon2-arm64-large
+      

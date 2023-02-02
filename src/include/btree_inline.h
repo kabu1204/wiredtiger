@@ -1527,34 +1527,11 @@ __wt_ref_addr_copy(WT_SESSION_IMPL *session, WT_REF *ref, WT_ADDR_COPY *copy)
     if (addr == NULL)
         return (false);
 
-    __wt_yield();
-    __wt_yield();
-
-    if (__wt_off_page(page, addr))
-        WT_ASSERT_ALWAYS(session, WT_IS_ALIGNED(addr, 8), "__wt_ref_addr_copy: addr misaligned!");
-
-    __wt_yield();
-    __wt_yield();
-    __wt_yield();
-    __wt_yield();
-
     /* If off-page, the pointer references a WT_ADDR structure. */
     if (__wt_off_page(page, addr)) {
         addr_addr = addr->addr;
         WT_TIME_AGGREGATE_COPY(&copy->ta, &addr->ta);
         copy->type = addr->type;
-        WT_ASSERT_ALWAYS(session,
-          (addr_addr != (uint8_t *)0xc2c2c2c2 && addr_addr != (uint8_t *)0x037b0fa2 &&
-            addr_addr != (uint8_t *)0x99999999 && addr_addr != (uint8_t *)0x69696969 &&
-            addr_addr != (uint8_t *)0x78787878 && addr_addr != (uint8_t *)0xd5d5d5d5 &&
-            addr_addr != (uint8_t *)0x11111111 && addr_addr != (uint8_t *)0x2c2c2c2c &&
-            addr_addr != (uint8_t *)0x1b1b1b1b && addr_addr != (uint8_t *)0xcafebabe &&
-            addr_addr != (uint8_t *)0xbaadbabe && addr_addr != (uint8_t *)0x45454545 &&
-            addr_addr != (uint8_t *)0x9b9b9b9b && addr_addr != (uint8_t *)0xcafebeef &&
-            addr_addr != (uint8_t *)0x24412441 && addr_addr != (uint8_t *)0x28282828 &&
-            addr_addr != (uint8_t *)0x10510510 && addr_addr != (uint8_t *)0x00babeee &&
-            addr_addr != (uint8_t *)0xcacacaca),
-          "WT-9512: bad addr!");
         memcpy(copy->addr, addr->addr, copy->size = addr->size);
         return (true);
     }
