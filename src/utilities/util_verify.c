@@ -163,7 +163,6 @@ util_verify(WT_SESSION *session, int argc, char *argv[])
              * verification is implemented.
              */
             if ((WT_PREFIX_MATCH(key, "table:") || WT_PREFIX_MATCH(key, "lsm:")) &&
-              strcmp(key, WT_HS_URI) != 0 && strcmp(key, WT_METADATA_URI) != 0 &&
               !WT_PREFIX_MATCH(key, WT_SYSTEM_PREFIX)) {
                 if (abort_on_error)
                     WT_ERR_ERROR_OK(verify_one(session, config, key), ENOTSUP, false);

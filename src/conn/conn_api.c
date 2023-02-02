@@ -2694,7 +2694,7 @@ wiredtiger_open(const char *home, WT_EVENT_HANDLER *event_handler, const char *c
     conn = NULL;
     session = NULL;
     merge_cfg = NULL;
-    try_salvage = false;
+    try_salvage = verify_meta = false;
 
     WT_RET(__wt_library_init());
 
@@ -3112,19 +3112,6 @@ wiredtiger_open(const char *home, WT_EVENT_HANDLER *event_handler, const char *c
     /* Start the worker threads and run recovery. */
     WT_ERR(__wt_connection_workers(session, cfg));
 
-#ifdef WT_STANDALONE_BUILD
-    /*
-     * If the user wants to verify WiredTiger metadata, verify the history store now that the
-     * metadata table may have been salvaged and eviction has been started and recovery run.
-     */
-    if (verify_meta) {
-        WT_ERR(__wt_open_internal_session(conn, "verify hs", false, 0, 0, &verify_session));
-        ret = __wt_hs_verify(verify_session);
-        WT_TRET(__wt_session_close_internal(verify_session));
-        WT_ERR(ret);
-    }
-#endif
-
     /*
      * The hash array sizes needed to be set up very early. Set them in the statistics here. Setting
      * them in the early configuration function makes them get zeroed out.
@@ -3142,6 +3129,19 @@ wiredtiger_open(const char *home, WT_EVENT_HANDLER *event_handler, const char *c
     F_SET(conn, WT_CONN_READY);
     F_CLR(conn, WT_CONN_MINIMAL);
     *connectionp = &conn->iface;
+
+#ifdef WT_STANDALONE_BUILD
+    /*
+     * If the user wants to verify WiredTiger metadata, verify the history store now that the
+     * metadata table may have been salvaged and eviction has been started and recovery run.
+     */
+    if (verify_meta) {
+        WT_ERR(__wt_open_internal_session(conn, "verify hs", false, 0, 0, &verify_session));
+        ret = __wt_hs_verify(verify_session);
+        WT_TRET(__wt_session_close_internal(verify_session));
+        WT_ERR(ret);
+    }
+#endif
 
 err:
     /* Discard the scratch buffers. */
