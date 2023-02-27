@@ -259,7 +259,7 @@ config_lib(
 config_lib(
     HAVE_LIBZ
     "zlib library exists."
-    LIB "z"
+    LIB "zlib"
     HEADER "zlib.h"
 )
 
